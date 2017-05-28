@@ -1,0 +1,12 @@
+[Unit]
+Description=SQM Scripts
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/sqm start
+ExecStop=/usr/bin/sqm stop
+RemainAfterExit=true
+
+[Install]
+WantedBy=default.target

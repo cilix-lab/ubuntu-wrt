@@ -1,0 +1,6 @@
+# Ensure that physical interfaces are mapped correctly to names
+SUBSYSTEM=="net", ATTR{ifindex}=="3", NAME="eth0"
+SUBSYSTEM=="net", ATTR{ifindex}=="2", NAME="eth1"
+SUBSYSTEM=="net", ATTR{ifindex}=="5", NAME="wlan0"
+SUBSYSTEM=="net", ATTR{ifindex}=="6", NAME="wlan1"
+SUBSYSTEM=="net", ATTR{ifindex}=="4", NAME="mlan0"

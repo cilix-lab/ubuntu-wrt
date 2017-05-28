@@ -1,0 +1,20 @@
+;
+; BIND data file for local loopback interface
+;
+$TTL	604800
+@	IN	SOA	armada.local. admin.armada.local. (
+			      2		; Serial
+			 604800		; Refresh
+			  86400		; Retry
+			2419200		; Expire
+			 604800 )	; Negative Cache TTL
+;
+@	IN	NS	armada.local.
+@	IN	A	192.168.1.1
+@	IN	AAAA	::1
+; A Records
+; Here you can fill your A Records.
+; server	IN	A	192.168.1.10
+; CNAME Records
+; Here you can fill your CNAME Records. Always remember to end domain name with a dot.
+; myserver	IN	CNAME	server.local.
