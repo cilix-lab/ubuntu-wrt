@@ -17,8 +17,8 @@ First, you have to get the Linux Kernel from Ubuntu. For the current commit, Ubu
 `# Clone this repository`  
 `git clone https://github.com/cilix-lab/ubuntu-wrt.git`  
 
-`# Copy all files to the linux kernel folder`  
-`cp -rf ubuntu-wrt/* ubuntu-xenial/`  
+`# Copy all files in the ubuntu-xenial-4.10.0-9.11_16.04.2 folder to the linux kernel folder`  
+`cp -rf ubuntu-wrt/ubuntu-xenial-4.10.0-9.11_16.04.2/* ubuntu-xenial/`  
 
 That's it! You can now compile the kernel. Remember to set the environment variables before compiling:  
 
