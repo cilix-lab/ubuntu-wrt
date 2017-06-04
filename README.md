@@ -41,6 +41,6 @@ Then install all the software needed and copy the modified rootfs files.
 * Must compile hostapd-2.6 and wpa_supplicant-2.6 for rootfs. (git://w1.fi/srv/git/hostap.git)  
 * To be able to use sch_cake, iproute2 with cake support needs to be compiled. (git://kau.toke.dk/cake/iproute2)  
 
-## To understand more about the development of this project, follow the original thread on McDebia:
+## To understand more about the development of this project, follow the original thread on McDebian:
 [Linksys WRT1900AC, WRT1900ACS, WRT1200AC and WRT3200ACM Router Debian Implementation](https://www.snbforums.com/threads/linksys-wrt1900ac-wrt1900acs-wrt1200ac-and-wrt3200acm-router-debian-implementation.28394/)
 
