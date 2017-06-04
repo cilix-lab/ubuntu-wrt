@@ -6,4 +6,4 @@
 // organization
 include "/etc/bind/zones.rfc1918";
 
-zone "armada.local" { type master; file "/etc/bind/db.armada.local"; };
+zone "lan" { type master; file "/etc/bind/db.lan"; };
