@@ -7,7 +7,7 @@ This project intends to keep an updated distribution of Ubuntu for the Linksys W
 ## 2 How to compile the kernel
 First, you have to get the Linux Kernel from Ubuntu. For the current commit, Ubuntu-lts-4.10.0-9.11_16.04.2 was used.
 
-`# Get kernel from ubuntui`  
+`# Get kernel from ubuntu`  
 `git clone git://kernel.ubuntu.com/ubuntu/ubuntu-xenial.git`  
 
 `# Checkout`  
@@ -20,15 +20,18 @@ First, you have to get the Linux Kernel from Ubuntu. For the current commit, Ubu
 `# Copy all files in the ubuntu-xenial-4.10.0-9.11_16.04.2 folder to the linux kernel folder`  
 `cp -rf ubuntu-wrt/ubuntu-xenial-4.10.0-9.11_16.04.2/* ubuntu-xenial/`  
 
-That's it! You can now compile the kernel. Remember to set the environment variables before compiling:  
+That's it! You can now compile the kernel. Remember to set the proper environment variables before compiling modules, dtbs and zImage:  
 
 `export ARCH=arm`  
 `export CROSS_COMPILE=arm-none-eabi-`  
 
 ## 3 ROOTFS
-The rootfs folder contains all modified files that you need to add to a minimal arm installation of ubuntu. You should set a proper chroot environment:  
+The rootfs folder contains all modified files that you need to add to a minimal ARM installation of Ubuntu. You should set a proper chroot environment:  
 
 `debootstrap --foreign --no-check-gpg --arch=armhf xenial /srv/chroot/ubuntu-wrt http://ports.ubuntu.com/`  
+`cp /usr/bin/qemu-arm-static /srv/chroot/ubuntu-wrt/usr/bin/`  
+`chroot /srv/chroot/ubuntu-wrt`  
+`/debootstrap/debootstrap --second-stage`  
 
 Then install all the software needed and copy the modified rootfs files.
 
