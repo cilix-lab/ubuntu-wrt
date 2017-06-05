@@ -33,7 +33,7 @@ The rootfs folder contains all modified files that you need to add to a minimal 
 `chroot /srv/chroot/ubuntu-wrt`  
 `/debootstrap/debootstrap --second-stage`  
 
-Then install all the software needed and copy the modified rootfs files.
+Then install all needed software and copy the modified rootfs files.
 
 ## 4 Configuration
 * net.ifnames=0 was added to keep old kernel names for the interfaces.  
