@@ -1,0 +1,44 @@
+#!/bin/bash
+
+usage() {
+	[ ! -z "$2" ] && echo "Error: $2."
+	echo "Usage: $0 -s <path/to/source> -t <path/to/target>"
+	exit $1
+}
+
+sync() {
+	# copy directory structure
+	for d in `find $SRC -type d`; do
+		[ $d == "$SRC" ] && continue
+		CDIR=$(echo $d | sed "s|$SRC||")
+		[ ! -d "$DST$CDIR" ] && mkdir -p "$DST$CDIR"
+	done
+
+	# copy files backing up existing
+	for f in `find $SRC -type f`; do
+		CFILE=$(echo $f | sed "s|$SRC||")
+		[ -f "$DST$CFILE" ] && cp "$DST$CFILE" "$DST$CFILE-dpkg"
+		cp -f "$f" "$DST$CFILE"
+	done
+}
+
+# checks
+[ "$(whoami)" != "root" ] && usage 1 "Script must be run with sudo"
+
+# get options
+OPTSTR="hs:t:"
+while getopts "$OPTSTR" OPT; do
+	case "$OPT" in
+		h) usage ;;
+    s) SRC=$OPTARG ;;
+		t) DST=$OPTARG ;;
+		"?") usage 2 "Unknown option: -$OPTARG" ;;
+		":") usage 3 "No argument value for option: -$OPTARG" ;;
+	esac
+done
+
+if [ ! -z "$SRC" ] && [ ! -z "$DST" ]; then
+	sync
+else
+	usage 4 "Missing options"
+fi
