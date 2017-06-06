@@ -11,13 +11,14 @@ sync() {
 	for d in `find $SRC -type d`; do
 		[ $d == "$SRC" ] && continue
 		CDIR=$(echo $d | sed "s|$SRC||")
-		[ ! -d "$DST$CDIR" ] && mkdir -p "$DST$CDIR"
+		[ ! -d "$DST$CDIR" ] && echo "Making $CDIR" && mkdir -p "$DST$CDIR"
 	done
 
 	# copy files backing up existing
 	for f in `find $SRC -type f`; do
 		CFILE=$(echo $f | sed "s|$SRC||")
-		[ -f "$DST$CFILE" ] && cp "$DST$CFILE" "$DST$CFILE-dpkg"
+		[ -f "$DST$CFILE" ] && echo "Backing up $CFILE" && cp "$DST$CFILE" "$DST$CFILE-dpkg"
+		echo "Copying $CFILE"
 		cp -f "$f" "$DST$CFILE"
 	done
 }
