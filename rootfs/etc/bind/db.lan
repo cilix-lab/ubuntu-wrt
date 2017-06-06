@@ -15,6 +15,7 @@ $TTL	604800
 ; A Records
 ; Here you can fill your A Records.
 ; server	IN	A	192.168.1.10
+wrt	IN	A	192.168.1.1
 ; CNAME Records
 ; Here you can fill your CNAME Records. Always remember to end domain name with a dot.
 ; myserver	IN	CNAME	server.lan.
