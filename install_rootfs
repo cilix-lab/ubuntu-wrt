@@ -17,7 +17,7 @@ sync() {
 	# copy files backing up existing
 	for f in `find $SRC -type f`; do
 		CFILE=$(echo $f | sed "s|$SRC||")
-		[ -f "$DST$CFILE" ] && echo "Backing up $CFILE" && cp "$DST$CFILE" "$DST$CFILE-dpkg"
+		[ -f "$DST$CFILE" ] && echo "Backing up $CFILE to $(basename $CFILE)-dpkg" && cp "$DST$CFILE" "$DST$CFILE-dpkg"
 		echo "Copying $CFILE"
 		cp -f "$f" "$DST$CFILE"
 	done
