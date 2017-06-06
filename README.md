@@ -7,17 +7,18 @@ This project intends to keep an updated distribution of Ubuntu for the Linksys W
 ## 2. The easy way
 
 ### 2.1. Get the ROOTFS
-You can download the ROOTFS from [here](https://mediafire.com).  
-Once you're done, extract the archive to an ext4 formatted USB thumb. Preferably, opt for a USB 3.0 thumb, since it will improve the systems performance considerably over USB 2.0.  
+You can download the ROOTFS from [here](https://www.mediafire.com/?ka2b0e6bwb7ssgc).  
+
+Once you're done, extract the archive to an ext4 formatted USB thumb. Preferably, opt for a USB 3.0 thumb, since it will improve the system's performance considerably over USB 2.0.  
 
 ### 2.2. Get the firmware
-First, get the firmware image from [here](https://mediafire.com).  
+First, get the firmware image from [here](https://www.mediafire.com/?lbkz95yn32r7ctd).  
 Once you have that, just flash it to your router as you would with any other firmware image, according to your current firmware (stock, OpenWRT/LEDE, DD-WRT, etc.).  
 
 ### 2.3. Booting
-Just plug in the USB thumb with the ROOTFS, start your router up and enjoy!  
+Just plug in the ROOTFS USB thum, start your router up and enjoy!  
 
-The default wireless configuration is as follows:  
+The default wireless configuration is:  
 
 * 2.4GHz SSID: Armada_2.4GHz  
 * 2.4GHz Password: armada24  
@@ -40,6 +41,7 @@ The current distribution is based on a minimal Ubuntu 16.04.2 installation plus:
 * Webmin 1.84.  
 * hostapd 2.6 and wpa_supplicant 2.6 for the wireless radios.  
 * dibbler-client and dibbler-server for DHCPv6 support.  
+* mwlwifi 10.3.4.0-20170606 at commit 36bc32767ed89e07c5c83036861d2fa4eb1f8629.  
 
 ## 3. The hard way
 
