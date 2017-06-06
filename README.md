@@ -1,10 +1,49 @@
 # Ubuntu WRT
 Ubuntu Xenial 16.04.2 for Linksys WRT3200ACM router.
 
-## 1 Introduction
+## 1. Introduction
 This project intends to keep an updated distribution of Ubuntu for the Linksys WRT3200ACM wireless router.
 
-## 2 How to compile the kernel
+## 2. The easy way
+
+### 2.1. Get the ROOTFS
+You can download the ROOTFS from [here](https://mediafire.com).  
+Once you're done, extract the archive to an ext4 formatted USB thumb. Preferably, opt for a USB 3.0 thumb, since it will improve the systems performance considerably over USB 2.0.  
+
+### 2.2. Get the firmware
+First, get the firmware image from [here](https://mediafire.com).  
+Once you have that, just flash it to your router as you would with any other firmware image, according to your current firmware (stock, OpenWRT/LEDE, DD-WRT, etc.).  
+
+### 2.3. Booting
+Just plug in the USB thumb with the ROOTFS, start your router up and enjoy!  
+
+The default wireless configuration is as follows:  
+
+* 2.4GHz SSID: Armada_2.4GHz  
+* 2.4GHz Password: armada24  
+* 5GHz SSID: Armada_5GHz  
+* 5GHz Password: armada50  
+
+The default login:  
+
+* Hostname: wrt  
+* User: root  
+* Password: admin  
+
+You can also login on Webmin at [http://wrt.lan](http://wrt.lan) or [http://192.168.1.1](http://192.168.1.1) with default user and password.  
+
+The current distribution is based on a minimal Ubuntu 16.04.2 installation plus:  
+
+* BIND9 DNS server for local network. Check configuration files in /etc/bind.  
+* ISC-DHCP-Server.  
+* [SQM-scripts](https://github.com/tohojo/sqm-scripts) for traffic shapping. Check sample configuration in /etc/sqm. Kernel has been compiled with [CAKE](https://www.bufferbloat.net/projects/codel/wiki/Cake/) support.  
+* Webmin 1.84.  
+* hostapd 2.6 and wpa_supplicant 2.6 for the wireless radios.  
+* dibbler-client and dibbler-server for DHCPv6 support.  
+
+## 3. The hard way
+
+### 3.1. How to compile the kernel
 First, you have to get the Linux Kernel from Ubuntu. For the current commit, Ubuntu-lts-4.10.0-9.11_16.04.2 was used.
 
 `# Get kernel from ubuntu`  
@@ -25,7 +64,7 @@ That's it! You can now compile the kernel. Remember to set the proper environmen
 `export ARCH=arm`  
 `export CROSS_COMPILE=arm-none-eabi-`  
 
-## 3 ROOTFS
+### 3.2. ROOTFS
 The rootfs folder contains all modified files that you need to add to a minimal ARM installation of Ubuntu. You should set a proper chroot environment:  
 
 `debootstrap --foreign --no-check-gpg --arch=armhf xenial /srv/chroot/ubuntu-wrt http://ports.ubuntu.com/`  
@@ -35,7 +74,7 @@ The rootfs folder contains all modified files that you need to add to a minimal 
 
 Then install all needed software and copy the modified rootfs files.
 
-## 4 Configuration
+### 3.3. Configuration
 * net.ifnames=0 was added to keep old kernel names for the interfaces.  
 * No udev rules are needed. eth0 interfaces is used for the LAN and eth1 for the WAN. The wireless interfaces are mlan0 (mwifiex), wlan0 and wlan1 (mwlwifi).  
 
