@@ -79,7 +79,7 @@ Then install all needed software and copy the modified rootfs files.
 
 ### 3.3. Configuration
 * net.ifnames=0 was added to keep old kernel names for the interfaces.  
-* No udev rules are needed. eth0 interfaces is used for the LAN and eth1 for the WAN. The wireless interfaces are mlan0 (mwifiex), wlan0 and wlan1 (mwlwifi).  
+* No udev rules are needed. eth0 interface is used for the LAN and eth1 for the WAN. The wireless interfaces are mlan0 (mwifiex), wlan0 and wlan1 (mwlwifi).  
 
 # Important Notice
 * This works on WRT3200ACM. No tests have been done on any other Linksys' WRT routers.  
