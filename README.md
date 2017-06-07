@@ -9,11 +9,12 @@ This project intends to keep an updated distribution of Ubuntu for the Linksys W
 ### 2.1. Get the ROOTFS
 You can download the ROOTFS from [here](https://www.mediafire.com/?ka2b0e6bwb7ssgc).  
 
-Once you're done, extract the archive to an ext4 formatted USB thumb. Preferably, opt for a USB 3.0 thumb, since it will considerably improve the system's performance over USB 2.0.  
+Once it's done, extract the archive to an ext4 formatted USB thumb. Preferably, opt for a USB 3.0 thumb, since it will considerably improve the system's performance over USB 2.0.  
 
 ### 2.2. Get the firmware
 First, get the firmware image from [here](https://www.mediafire.com/?lbkz95yn32r7ctd).  
-Once you have that, just flash it to your router as you would with any other firmware image, according to your current firmware (stock, OpenWRT/LEDE, DD-WRT, etc.).  
+
+Then, just flash it to your router as you would with any other firmware image, according to your current firmware (stock, OpenWRT/LEDE, DD-WRT, etc.).  
 
 ### 2.3. Booting
 Just plug in the ROOTFS USB thumb, start your router up and enjoy!  
