@@ -62,6 +62,10 @@ First, you have to get the Linux Kernel from Ubuntu. For the current commit, Ubu
 `# Copy all files in the ubuntu-xenial-4.10.0-9.11_16.04.2 folder to the linux kernel folder`  
 `cp -rf ubuntu-wrt/ubuntu-xenial-4.10.0-9.11_16.04.2/* ubuntu-xenial/`  
 
+Note: You can now use the merge tool provided. Justo go to the root folder of this git and:  
+`./merge -s ubuntu-xenial -t ../ubuntu-xenial -i`  
+Provided you cloned the ubuntu kernel to ../ubuntu-xenial.  
+
 That's it! You can now compile the kernel. Remember to set the proper environment variables before compiling modules, dtbs and zImage:  
 
 `export ARCH=arm`  
