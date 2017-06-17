@@ -2,7 +2,8 @@
 
 usage() {
 	[ ! -z "$2" ] && echo "Error: $2."
-	echo "Usage: $0 -s <path/to/source> -t <path/to/target>"
+	echo "Usage: $0 -s <path/to/source> -t <path/to/target> [-i]"
+	echo -e "Options: -i\tOverwrite files without backup."
 	exit $1
 }
 
@@ -17,7 +18,7 @@ sync() {
 	# copy files backing up existing
 	for f in `find $SRC -type f`; do
 		CFILE=$(echo $f | sed "s|$SRC||")
-		[ -f "$DST$CFILE" ] && echo "Backing up $CFILE to $(basename $CFILE)-dpkg" && cp "$DST$CFILE" "$DST$CFILE-dpkg"
+		$BKP && [ -f "$DST$CFILE" ] && echo "Backing up $CFILE to $(basename $CFILE)-dpkg" && cp "$DST$CFILE" "$DST$CFILE-dpkg"
 		echo "Copying $CFILE"
 		cp -f "$f" "$DST$CFILE"
 	done
@@ -27,12 +28,14 @@ sync() {
 [ "$(whoami)" != "root" ] && usage 1 "Script must be run with sudo"
 
 # get options
-OPTSTR="hs:t:"
+BKP=true # Making backups is default.
+OPTSTR="hs:t:i"
 while getopts "$OPTSTR" OPT; do
 	case "$OPT" in
 		h) usage ;;
     s) SRC=$OPTARG ;;
 		t) DST=$OPTARG ;;
+		i) BKP=false;
 		"?") usage 2 "Unknown option: -$OPTARG" ;;
 		":") usage 3 "No argument value for option: -$OPTARG" ;;
 	esac
