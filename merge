@@ -2,8 +2,10 @@
 
 usage() {
 	[ ! -z "$2" ] && echo "Error: $2."
-	echo "Usage: $0 -s <path/to/source> -t <path/to/target> [-i]"
-	echo -e "Options: -i\tOverwrite files without backup."
+	echo "Usage: $0 -s <path/to/source> -t <path/to/target> [-i -e <backup-extension>]"
+	echo "Options:"
+	echo -e "\t-i\tOverwrite files without backup."
+	echo -e "\t-e\tBackup extension. Default: \"-dpkg\""
 	exit $1
 }
 
@@ -18,7 +20,7 @@ sync() {
 	# copy files backing up existing
 	for f in `find $SRC -type f`; do
 		CFILE=$(echo $f | sed "s|$SRC||")
-		$BKP && [ -f "$DST$CFILE" ] && echo "Backing up $CFILE to $(basename $CFILE)-dpkg" && cp "$DST$CFILE" "$DST$CFILE-dpkg"
+		$BKP && [ -f "$DST$CFILE" ] && echo "Backing up $CFILE to $(basename $CFILE)$EXT" && cp "$DST$CFILE" "$DST$CFILE$EXT"
 		echo "Copying $CFILE"
 		cp -f "$f" "$DST$CFILE"
 	done
@@ -29,13 +31,15 @@ sync() {
 
 # get options
 BKP=true # Making backups is default.
-OPTSTR="hs:t:i"
+EXT="-dpkg"
+OPTSTR="hs:t:ie"
 while getopts "$OPTSTR" OPT; do
 	case "$OPT" in
 		h) usage ;;
     s) SRC=$OPTARG ;;
 		t) DST=$OPTARG ;;
-		i) BKP=false;
+		i) BKP=false ;;
+		e) EXT=$OPTARG ;;
 		"?") usage 2 "Unknown option: -$OPTARG" ;;
 		":") usage 3 "No argument value for option: -$OPTARG" ;;
 	esac
