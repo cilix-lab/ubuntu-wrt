@@ -32,7 +32,7 @@ sync() {
 # get options
 BKP=true # Making backups is default.
 EXT="-dpkg"
-OPTSTR="hs:t:ie"
+OPTSTR="hs:t:ie:"
 while getopts "$OPTSTR" OPT; do
 	case "$OPT" in
 		h) usage ;;
