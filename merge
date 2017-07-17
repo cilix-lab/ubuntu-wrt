@@ -1,5 +1,24 @@
 #!/bin/bash
 
+ask() { local q="$1"; local d=${2:-"n"}
+  read -p "$q [$d]: " r; r=${r:-"$d"}
+  local i=0; while true; do
+    case $r in
+      y|Y|yes|Yes|yES|YES )
+        return 0
+        ;;
+      n|N|no|No|nO )
+        return 1
+        ;;
+      * )
+        i=$((i+1))
+        [ $i -le 3 ] && read -p "Not a valid answer. Try 'y' or 'n': " r || exit 1
+        continue
+        ;;
+    esac
+  done
+}
+
 usage() {
 	[ ! -z "$2" ] && echo "Error: $2."
 	echo "Usage: $0 -s <path/to/source> -t <path/to/target> [-i -e <backup-extension>]"
@@ -26,18 +45,6 @@ sync() {
 	done
 }
 
-# checks
-if [ "$(whoami)" != "root" ]; then
-	echo "You are currently not running the script as root."
-	echo "If you wish to modify a CHROOT environment, you will probably need it."
-	read -p "Do you wish to continue as $(whoami)? [y/n]: " r
-	case "$r" in
-		n|N|no|No|nO ) exit 0 ;;
-		y|Y|yes|Yes|yES ) ;;
-		* ) echo "Not a valid answer. Quitting."; exit 1 ;;
-	esac
-fi
-
 # get options
 BKP=true # Making backups is default.
 EXT="-dpkg"
@@ -55,7 +62,20 @@ while getopts "$OPTSTR" OPT; do
 done
 
 if [ ! -z "$SRC" ] && [ ! -z "$DST" ]; then
-	sync
+
+	# check ownership
+	SRC_OWNER=`ls -lA "$(dirname $SRC)" | grep ' '"$(basename $SRC)"'$' | awk '{print $3}'`
+	DST_OWNER=`ls -lA "$(dirname $DST)" | grep ' '"$(basename $DST)"'$' | awk '{print $3}'`
+	if [ ! -z "$SRC_OWNER" ] && [ ! -z "$DST_OWNER" ] &&\
+		[ "$SRC_OWNER" == "$DST_OWNER" ] && [ "$SRC_OWNER" == "$(whoami)" ] ||\
+		[ "$(whoami)" == "root" ]; then
+		sync
+	else
+		echo "You are not the owner of the source and/or destination folders and you are not currently running the script as root."
+		echo "If you wish to modify a CHROOT environment, you will probably need to be root."
+		ask "Do you wish to continue as $(whoami)?" "n" && sync
+	fi
+
 else
 	usage 4 "Missing options"
 fi
