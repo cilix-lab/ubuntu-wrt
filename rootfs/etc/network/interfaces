@@ -2,21 +2,27 @@
 # Include files from /etc/network/interfaces.d:
 source-directory /etc/network/interfaces.d
 
-auto lo br0
-
+auto lo
 iface lo inet loopback
+	
+allow-hotplug wlan0
+iface wlan0 inet manual
+	
+allow-hotplug wlan1
+iface wlan1 inet manual
+	
+allow-hotplug eth0 eth1
 
-allow-hotplug eth0 eth1 wlan0 wlan1
-
-auto eth1
 iface eth1 inet dhcp
 	pre-up /etc/dibbler/ubuntu-set-mac
-	pre-up iptables-restore < /etc/iptables.up.rules
-	pre-up ip6tables-restore < /etc/ip6tables.up.rules
+	pre-up iptables-restore < /etc/iptables.rules
+	pre-up ip6tables-restore < /etc/ip6tables.rules
 
+auto br0
 iface br0 inet static
 	bridge_ports eth0 wlan0 wlan1
 	address 192.168.1.1
 	netmask 255.255.255.0
 	network 192.168.1.0
 	broadcast 192.168.1.255
+
