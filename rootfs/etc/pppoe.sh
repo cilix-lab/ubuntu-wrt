@@ -28,6 +28,7 @@ if ask "Do you wish to continue?" "y"; then
 	echo "/etc/ip6tables.rules"
 	if ask "Do you wish to continue?" "y"; then
 		sed -i 's/iface eth1 inet dhcp/iface eth1 inet manual/' /etc/network/interfaces
+		sed -i '/^auto eth1$/d' /etc/network/interfaces
 		sed -i 's/net.ipv6.conf.eth1.accept_ra=2/net.ipv6.conf.eth1.accept_ra=0/' /etc/sysctl.conf
 		sed -i 's/eth1/ppp0/g' /etc/iptables.rules
 		sed -i 's/eth1/ppp0/g' /etc/ip6tables.rules

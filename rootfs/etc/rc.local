@@ -12,13 +12,11 @@
 # By default this script does nothing.
 
 # first run tasks
-rm /etc/ssh/ssh_host_*
 dpkg-reconfigure openssh-server
 echo iproute2 hold | dpkg --set-selections
 echo hostapd hold | dpkg --set-selections
 echo wpasupplicant hold | dpkg --set-selections
 sed -i '/^# first run tasks$/d' /etc/rc.local
-sed -i '/^rm \/etc\/ssh\/ssh_host_\*$/d' /etc/rc.local
 sed -i '/^dpkg-reconfigure openssh-server$/d' /etc/rc.local
 sed -i '/dpkg --set-selections$/d' /etc/rc.local
 sed -i '/^sed.*/d' /etc/rc.local

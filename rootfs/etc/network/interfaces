@@ -11,8 +11,10 @@ iface wlan0 inet manual
 allow-hotplug wlan1
 iface wlan1 inet manual
 	
-allow-hotplug eth0 eth1
+allow-hotplug eth0
+iface eth0 inet manual
 
+allow-hotplug eth1
 iface eth1 inet dhcp
 	pre-up /etc/dibbler/ubuntu-set-mac
 	pre-up iptables-restore < /etc/iptables.rules
@@ -25,4 +27,3 @@ iface br0 inet static
 	netmask 255.255.255.0
 	network 192.168.1.0
 	broadcast 192.168.1.255
-
