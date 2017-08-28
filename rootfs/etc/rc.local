@@ -57,6 +57,7 @@ echo iproute2 hold | dpkg --set-selections
 echo hostapd hold | dpkg --set-selections
 echo wpasupplicant hold | dpkg --set-selections
 bind_ddns
+chmod -R 755 /scripts
 replace_default
 reboot
 
