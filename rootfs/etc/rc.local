@@ -46,6 +46,9 @@ chown root:bind /etc/bind/ddns.key
 chown root:root /etc/dhcp/ddns.key
 chmod 640 /etc/bind/ddns.key
 chmod 640 /etc/dhcp/ddns.key
+chown root:bind /etc/bind/dynamic
+chmod 775 /etc/bind/dynamic
+chmod 664 /etc/bind/dynamic/db.*
 }
 
 # first run tasks
