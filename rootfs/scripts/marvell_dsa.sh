@@ -50,9 +50,9 @@ iface lan4 inet manual
 
 allow-hotplug wan
 iface wan inet dhcp
-	pre-up /etc/dibbler/armada-set-mac
-	pre-up iptables-restore < /etc/iptables.up.rules
-	pre-up ip6tables-restore < /etc/ip6tables.up.rules
+	pre-up /etc/dibbler/ubuntu-set-mac
+	pre-up iptables-restore < /etc/iptables.rules
+	pre-up ip6tables-restore < /etc/ip6tables.rules
 
 auto br0
 iface br0 inet static
@@ -83,9 +83,9 @@ iface wlan1 inet manual
 allow-hotplug eth1
 auto eth1
 iface eth1 inet dhcp
-	pre-up /etc/dibbler/armada-set-mac
-	pre-up iptables-restore < /etc/iptables.up.rules
-	pre-up ip6tables-restore < /etc/ip6tables.up.rules
+	pre-up /etc/dibbler/ubuntu-set-mac
+	pre-up iptables-restore < /etc/iptables.rules
+	pre-up ip6tables-restore < /etc/ip6tables.rules
 
 auto br0
 iface br0 inet static
@@ -111,7 +111,6 @@ enable_dsa() {
     write_dsa
 
     # fixing config files
-    files="/etc/sysctl.conf /etc/iptables.up.rules /etc/ip6tables.up.rules /etc/ppp/peers/dsl-provider /etc/dibbler/client.conf /etc/dibbler/armada-set-mac"
     for f in $files; do
       echo -n "Modifying $f... "
       sed -i 's/eth1/wan/g' $f 2> /dev/null &&\
@@ -141,7 +140,6 @@ disable_dsa() {
     fi
 
     # fixing config files
-    files="/etc/sysctl.conf /etc/iptables.up.rules /etc/ip6tables.up.rules /etc/ppp/peers/dsl-provider /etc/dibbler/client.conf /etc/dibbler/armada-set-mac"
     for f in $files; do
       echo -n "Modifying $f... "
       sed -i 's/wan/eth1/g' $f 2> /dev/null &&\
@@ -151,7 +149,10 @@ disable_dsa() {
   fi
 }
 
-if lsmod | grep -q 'mv88e6xxx'; then
+# files to be modified
+files="/etc/sysctl.conf /etc/iptables.rules /etc/ip6tables.rules /etc/ppp/peers/dsl-provider /etc/dibbler/client.conf /etc/dibbler/ubuntu-set-mac"
+
+if ! lsmod | grep -q 'mv88e6xxx'; then
   echo "Marvell DSA module is not loaded."
   enable_dsa
   echo "Declared interfaces will be setup as default."

@@ -4,6 +4,18 @@
 
 // Consider adding the 1918 zones here, if they are not used in your
 // organization
-include "/etc/bind/zones.rfc1918";
+//include "/etc/bind/zones.rfc1918";
 
-zone "lan" { type master; file "/etc/bind/db.lan"; };
+include "/etc/bind/ddns.key";
+zone "hinrichs.io" {
+	type master;
+	notify no;
+	file "/etc/bind/dynamic/db.hinrichs.io";
+	allow-update { key DDNS_UPDATE; };
+}
+zone "1.168.192.in-addr.arpa" {
+	type master;
+	notify no;
+	file "/etc/bind/dynamic/db.192";
+	allow-update { key DDNS_UPDATE; };
+}
