@@ -84,7 +84,8 @@ fi
 
 cd "$workdir"
 if [ $err == 0 ] && ask "Done. Do you wish to run ubuntu-wrt ./merge to update ubuntu-xenial sources?" "n"; then
-  ubuntu-wrt/merge -s ubuntu-wrt/ubuntu-xenial -t ubuntu-xenial -i
+  [ -d "$workdir/ubuntu-xenial" ] && ubuntu-wrt/merge -s ubuntu-wrt/ubuntu-xenial -t ubuntu-xenial -i ||\
+    echo "$workdir/ubuntu-xenial does not exist."
 else
   echo "There have been errors during update."
   exit $err
