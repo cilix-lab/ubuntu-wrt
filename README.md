@@ -1,5 +1,5 @@
 # Ubuntu WRT
-Ubuntu Xenial 16.04.2 for Linksys WRT3200ACM router.
+Ubuntu Xenial 16.04.2 for Linksys WRT3200ACM router.  
 Current version is UbuntuWRT 17.08.  
 
 ## 1. Introduction
