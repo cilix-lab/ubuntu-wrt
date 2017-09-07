@@ -5,7 +5,7 @@ Current version is UbuntuWRT 17.08.
 ## 1. Introduction
 This project intends to keep an updated distribution of Ubuntu for the Linksys WRT3200ACM wireless router.
 
-## 2 Features
+## 2. Features
 * Chrooted BIND9 DNS server for local network with Dynamic DNS enabled.  
 * ISC-DHCP-Server.  
 * [SQM-scripts](https://github.com/tohojo/sqm-scripts) for traffic shapping. Check sample configuration in /etc/sqm. Kernel has been compiled with [CAKE](https://www.bufferbloat.net/projects/codel/wiki/Cake/) support.  
@@ -97,7 +97,7 @@ Then install all needed software and copy the modified rootfs files.
 ### 17.08
 * Changed naming scheme.  
 * Removed Webmin.  
-* Fixed several configration files and removed obsolete files.  
+* Fixed several configuration files and removed obsolete files.  
 * Added chroot to BIND9.  
 * Added Dynamic DNS for name resolving.  
 
