@@ -17,10 +17,10 @@ Current version is UbuntuWRT 17.08.
 ## 3. The easy way
 
 ### 3.1. Get the ROOTFS
-First, download the ROOTFS from [here](http://www.mediafire.com/file/rjj7m00xob8qipl/ubuntu-wrt-4.10.0-9.11_16.04.2_20170617.tar.bz2) and extract the archive to an ext4 formatted USB thumb. Preferably, opt for a USB 3.0 thumb, since it will considerably improve the system's performance over USB 2.0.  
+First, download the ROOTFS from [here](http://www.mediafire.com/file/gois7iw7hfhzogs/ubuntu-wrt_17.08.tar.bz2) and extract the archive to an ext4 formatted USB thumb. Preferably, opt for a USB 3.0 thumb, since it will considerably improve the system's performance over USB 2.0.  
 
 ### 3.2. Get the firmware
-Get the firmware image from [here](http://www.mediafire.com/file/bj7g53tdwaw3ag7/ubuntu-wrt-4.10.0-9.11_16.04.2_20170617.img) and just flash it to your router as you would with any other firmware image, according to your current firmware (stock, OpenWRT/LEDE, DD-WRT, etc.).  
+Get the firmware image from [here](http://www.mediafire.com/file/6o47qo5d36n559t/ubuntu-wrt_17.08.bin) and just flash it to your router as you would with any other firmware image, according to your current firmware (stock, OpenWRT/LEDE, DD-WRT, etc.).  
 
 ### 3.3. Booting
 Just plug in the ROOTFS USB thumb, start your router and enjoy!  
