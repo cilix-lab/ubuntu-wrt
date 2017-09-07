@@ -1,10 +1,9 @@
 # Ubuntu WRT
 Ubuntu Xenial 16.04.2 for Linksys WRT3200ACM router.
+Current version is UbuntuWRT 17.08.  
 
 ## 1. Introduction
 This project intends to keep an updated distribution of Ubuntu for the Linksys WRT3200ACM wireless router.
-
-Current version is UbuntuWRT 17.08.  
 
 ## 2 Features
 * Chrooted BIND9 DNS server for local network with Dynamic DNS enabled.  
