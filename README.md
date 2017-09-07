@@ -84,6 +84,7 @@ Then install all needed software and copy the modified rootfs files.
 ## 5. Changelog
 
 ### 17.08
+* Changed naming scheme.  
 * Removed Webmin.  
 * Fixed several configration files and removed obsolete files.  
 * Added chroot to BIND9.  
