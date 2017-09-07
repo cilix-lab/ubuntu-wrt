@@ -2,12 +2,12 @@
 ; BIND reverse data file for local loopback interface
 ;
 $TTL	604800
-@	IN	SOA	wrt.local. admin.wrt.local. (
+@	IN	SOA	ubuntuwrt.local. admin.ubuntuwrt.local. (
 			      1		; Serial
 			 604800		; Refresh
 			  86400		; Retry
 			2419200		; Expire
 			 604800 )	; Negative Cache TTL
 ;
-@	IN	NS	wrt.local.
-1.1	IN	PTR	wrt.local.
+@	IN	NS	ubuntuwrt.local.
+1.1	IN	PTR	ubuntuwrt.local.

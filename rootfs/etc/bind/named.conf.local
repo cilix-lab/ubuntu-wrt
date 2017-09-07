@@ -7,15 +7,15 @@
 //include "/etc/bind/zones.rfc1918";
 
 include "/etc/bind/ddns.key";
-zone "hinrichs.io" {
+zone "local" {
 	type master;
 	notify no;
-	file "/etc/bind/dynamic/db.hinrichs.io";
+	file "/etc/bind/dynamic/db.local";
 	allow-update { key DDNS_UPDATE; };
-}
+};
 zone "1.168.192.in-addr.arpa" {
 	type master;
 	notify no;
 	file "/etc/bind/dynamic/db.192";
 	allow-update { key DDNS_UPDATE; };
-}
+};
