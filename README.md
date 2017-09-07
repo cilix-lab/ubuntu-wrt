@@ -82,7 +82,7 @@ Then install all needed software and copy the modified rootfs files.
 * net.ifnames=0 was added to keep old kernel names for the interfaces.  
 * No udev rules are needed. eth0 interface is used for the LAN and eth1 for the WAN. The wireless interfaces are mlan0 (mwifiex), wlan0 and wlan1 (mwlwifi).  
 
-## 5 Changelog
+## 5. Changelog
 
 ### 17.08
 * Removed Webmin.  
