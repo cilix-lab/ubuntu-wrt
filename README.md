@@ -24,7 +24,7 @@ Get the firmware image from [here](http://www.mediafire.com/file/6o47qo5d36n559t
 ### 3.3. Booting
 Just plug in the ROOTFS USB thumb, start your router and enjoy!  
 
-### 3.4 Defaults
+### 3.4. Defaults
 The default wireless configuration is:  
 
 * 2.4GHz SSID: UbuntuWRT_2.4GHz  
@@ -39,6 +39,17 @@ The default login:
 * User: root  
 * Password: admin  
 
+### 3.5. Setting it up
+You can setup your router as you would with an Ubuntu headless server.  
+
+There are a couple helper scripts in "/scripts", which will help you setup a PPPoE connection and/or enable the Marvell DSA switch.  
+
+Files you might want to check out:  
+* /etc/network/interfaces  
+* /etc/hostapd/wlan0.conf and /etc/hostapd/wlan1.conf  
+* /etc/dhcp/dhcpd.conf  
+
+To enable DFS channels, be sure to edit the REGDOMAIN in "/etc/default/crda" and change it in hostapd config ("/etc/hostpad").  
 
 ## 4. The hard way
 
@@ -89,6 +100,9 @@ Then install all needed software and copy the modified rootfs files.
 * Fixed several configration files and removed obsolete files.  
 * Added chroot to BIND9.  
 * Added Dynamic DNS for name resolving.  
+
+## 6. Roadmap
+* Start a wiki.  
 
 # Important Notice
 * This works on WRT3200ACM. No tests have been done on any other Linksys' WRT routers.  
