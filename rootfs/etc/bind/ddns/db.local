@@ -12,4 +12,4 @@ $TTL	604800
 @	IN	NS	ubuntuwrt.local.
 @	IN	A	192.168.1.1
 @	IN	AAAA	::1
-wrt	IN	A	192.168.1.1
+ubuntuwrt	IN	A	192.168.1.1
