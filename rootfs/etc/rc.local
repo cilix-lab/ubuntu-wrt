@@ -30,8 +30,7 @@ exit 0
 EOF
 }
 
-bind() {
-# chroot
+bind_chroot() {
 sed -i 's/OPTIONS=.*/OPTIONS="-u bind -t \/var\/lib\/named"/' /etc/default/bind9
 sed -i 's/ExecStart=\/usr\/sbin\/named.*/ExecStart=\/usr\/sbin\/named -f -u bind -t \/var\/lib\/named/' /lib/systemd/system/bind9.service
 mkdir -p /var/lib/named/etc /var/lib/named/dev /var/lib/named/var/cache/bind /var/lib/named/var/run/named /var/lib/named/usr/lib/arm-linux-gnueabihf/openssl-1.0.0/engines
@@ -43,7 +42,9 @@ chmod 666 /var/lib/named/dev/null /var/lib/named/dev/random
 chown -R bind:bind /var/lib/named/var/*
 chown -R bind:bind /var/lib/named/etc/bind
 echo "/usr/lib/arm-linux-gnueabihf/openssl-1.0.0/engines /var/lib/named/usr/lib/arm-linux-gnueabihf/openssl-1.0.0/engines none defaults,bind 0 0" >> /etc/fstab
-# ddns
+}
+
+bind_ddns() {
 mkdir /tmp/bind; cd /tmp/bind
 dnssec-keygen -a HMAC-MD5 -b 128 -r /dev/urandom -n USER DDNS_UPDATE
 local key=`cat 'Kddns_update.'*'.private' | grep 'Key:' | cut -d ' ' -f2`
@@ -66,10 +67,9 @@ chmod 664 /etc/bind/dynamic/db.*
 
 # first run tasks
 dpkg-reconfigure openssh-server
-echo iproute2 hold | dpkg --set-selections
-echo hostapd hold | dpkg --set-selections
-echo wpasupplicant hold | dpkg --set-selections
-bind
+systemctl enable ssh
+bind_chroot
+bind_ddns
 chmod -R 755 /scripts
 replace_default
 reboot

@@ -10,12 +10,12 @@ include "/etc/bind/ddns.key";
 zone "local" {
 	type master;
 	notify no;
-	file "/etc/bind/dynamic/db.local";
+	file "/etc/bind/ddns/db.local";
 	allow-update { key DDNS_UPDATE; };
 };
 zone "1.168.192.in-addr.arpa" {
 	type master;
 	notify no;
-	file "/etc/bind/dynamic/db.192";
+	file "/etc/bind/ddns/db.192";
 	allow-update { key DDNS_UPDATE; };
 };
