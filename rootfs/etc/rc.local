@@ -68,6 +68,8 @@ chmod 664 /etc/bind/ddns/db.*
 # first run tasks
 dpkg-reconfigure openssh-server
 systemctl enable ssh
+systemctl enable isc-dhcp-server
+systemctl enable bind9
 bind_chroot
 bind_ddns
 chmod -R 755 /scripts
