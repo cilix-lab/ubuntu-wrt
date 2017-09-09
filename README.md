@@ -16,13 +16,14 @@ This project intends to keep an updated distribution of Ubuntu for the Linksys W
 ## 3. The easy way
 
 ### 3.1. Get the ROOTFS
-First, download the ROOTFS from [here](http://www.mediafire.com/file/gois7iw7hfhzogs/ubuntu-wrt_17.08.tar.bz2) and extract the archive to an ext4 formatted USB thumb. Preferably, opt for a USB 3.0 thumb, since it will considerably improve the system's performance over USB 2.0.  
+First, download the ROOTFS from [here](http://www.mediafire.com/file/ahb7xqxvmdv2e3r/ubuntu-wrt_17.08_rootfs.tar.bz2) and extract the archive to an ext4 formatted USB thumb. Preferably, opt for a USB 3.0 thumb, since it will considerably improve the system's performance over USB 2.0.  
 
 ### 3.2. Get the firmware
-Get the firmware image from [here](http://www.mediafire.com/file/6o47qo5d36n559t/ubuntu-wrt_17.08.bin) and just flash it to your router as you would with any other firmware image, according to your current firmware (stock, OpenWRT/LEDE, DD-WRT, etc.).  
+Get the firmware image from [here](http://www.mediafire.com/file/d3ov1402r8lbqj5/ubuntu-wrt_17.08.bin) and just flash it to your router as you would with any other firmware image, according to your current firmware (stock, OpenWRT/LEDE, DD-WRT, etc.).  
 
 ### 3.3. Booting
 Just plug in the ROOTFS USB thumb, start your router and enjoy!  
+In it's first boot, the router will finish some tasks and reboot, so give it time.  
 
 ### 3.4. Defaults
 The default wireless configuration is:  
@@ -95,6 +96,7 @@ Then install all needed software and copy the modified rootfs files.
 ## 5. Changelog
 
 ### 17.08
+* OpenSSH generates ssh keys on first boot.
 * Changed naming scheme.  
 * Removed Webmin.  
 * Fixed several configuration files and removed obsolete files.  
