@@ -55,14 +55,14 @@ key DDNS_UPDATE {
 	secret "$key";
 };
 EOF
-cp /etc/bind/ddns.key /etc/dhcp/ddns.key
+cp /etc/bind/ddns.key /etc/dhcp/ddns-keys/ddns.key
 chown root:bind /etc/bind/ddns.key
-chown root:root /etc/dhcp/ddns.key
+chown root:root /etc/dhcp/ddns-keys/ddns.key
 chmod 640 /etc/bind/ddns.key
-chmod 640 /etc/dhcp/ddns.key
-chown root:bind /etc/bind/dynamic
-chmod 775 /etc/bind/dynamic
-chmod 664 /etc/bind/dynamic/db.*
+chmod 640 /etc/dhcp/ddns-keys/ddns.key
+chown root:bind /etc/bind/ddns
+chmod 775 /etc/bind/ddns
+chmod 664 /etc/bind/ddns/db.*
 }
 
 # first run tasks
