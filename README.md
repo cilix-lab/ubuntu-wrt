@@ -104,6 +104,7 @@ Then install all needed software and copy the modified rootfs files.
 * Added Dynamic DNS for name resolving.  
 
 ## 6. Roadmap
+* Upgrade base system to Ubuntu 17.10 Artful Aardvark.  
 * Start a wiki.  
 
 # Important Notice
