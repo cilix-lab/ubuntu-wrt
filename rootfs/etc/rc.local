@@ -69,6 +69,7 @@ chmod 664 /etc/bind/ddns/db.*
 dpkg-reconfigure openssh-server
 systemctl enable ssh
 systemctl enable isc-dhcp-server
+systemctl enable isc-dhcp-server6
 systemctl enable bind9
 bind_chroot
 bind_ddns
