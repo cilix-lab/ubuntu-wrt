@@ -67,13 +67,20 @@ chmod 664 /etc/bind/ddns/db.*
 
 # first run tasks
 dpkg-reconfigure openssh-server
-systemctl enable ssh
-systemctl enable isc-dhcp-server
-systemctl enable isc-dhcp-server6
-systemctl enable bind9
+# enable openssh
+ln -s /lib/systemd/system/ssh.service /etc/systemd/system/multi-user.target.wants/ssh.service 
+ln -s /lib/systemd/system/ssh.service /etc/systemd/system/sshd.service
+# enable isc-dhcp-server
+ln -s /lib/systemd/system/isc-dhcp-server.service /etc/systemd/system/multi-user.target.wants/isc-dhcp-server.service
+ln -s /lib/systemd/system/isc-dhcp-server6.service /etc/systemd/system/multi-user.target.wants/isc-dhcp-server6.service
+#enable bind9
+ln -s /lib/systemd/system/bind9.service /etc/systemd/system/multi-user.target.wants/bind9.service
+# setup bind9
 bind_chroot
 bind_ddns
+# set scripts perms
 chmod -R 755 /scripts
+# set default rc.local
 replace_default
 reboot
 
