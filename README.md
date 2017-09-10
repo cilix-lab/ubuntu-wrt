@@ -29,9 +29,9 @@ In it's first boot, the router will finish some tasks and reboot, so give it tim
 The default wireless configuration is:  
 
 * 2.4GHz SSID: UbuntuWRT_2.4GHz  
-* 2.4GHz Password: ubuntuwrt24  
 * 5GHz SSID: UbuntuWRT_5GHz  
-* 5GHz Password: ubuntuwrt50  
+
+Both networks are open, so you should set the password right away.  
 
 The default login:  
 
