@@ -31,8 +31,6 @@ EOF
 }
 
 bind_chroot() {
-sed -i 's/OPTIONS=.*/OPTIONS="-u bind -t \/var\/lib\/named"/' /etc/default/bind9
-sed -i 's/ExecStart=\/usr\/sbin\/named.*/ExecStart=\/usr\/sbin\/named -f -u bind -t \/var\/lib\/named/' /lib/systemd/system/bind9.service
 mkdir -p /var/lib/named/etc /var/lib/named/dev /var/lib/named/var/cache/bind /var/lib/named/var/run/named /var/lib/named/usr/lib/arm-linux-gnueabihf/openssl-1.0.0/engines
 mv /etc/bind /var/lib/named/etc
 ln -s /var/lib/named/etc/bind /etc/bind
