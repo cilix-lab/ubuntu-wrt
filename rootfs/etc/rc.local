@@ -64,6 +64,8 @@ chmod 664 /etc/bind/ddns/db.*
 }
 
 # first run tasks
+date --set "11 Sep 2017 12:00:00"
+timedatectl set-ntp true
 dpkg-reconfigure openssh-server
 # enable openssh
 ln -s /lib/systemd/system/ssh.service /etc/systemd/system/multi-user.target.wants/ssh.service 
