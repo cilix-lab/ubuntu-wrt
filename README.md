@@ -2,7 +2,7 @@
 Ubuntu Xenial 16.04.2 for Linksys WRT3200ACM router.  
 Current version is UbuntuWRT 17.08.1.  
 
-## Important Note
+## Note on 17.08
 There were several configuration issues in 17.08 release. They have now been resolved and UbuntuWRT works right away. Remember to wait at least 3 minutes in it's first boot, since it will boot, setup some things like SSH keys, and reboot.  
 
 ## 1. Introduction
@@ -23,7 +23,7 @@ This project intends to keep an updated distribution of Ubuntu for the Linksys W
 First, download the ROOTFS from [here](http://www.mediafire.com/file/wq9c8ufszducfwc/ubuntu-wrt_17.08.1_rootfs.tar.bz2) and extract the archive to an ext4 formatted USB thumb. Preferably, opt for a USB 3.0 thumb, since it will considerably improve the system's performance over USB 2.0.  
 
 ### 3.2. Get the firmware
-Get the firmware image from [here](http://www.mediafire.com/file/c3d76xchbcm8col/ubuntu-wrt_17.08.bin) and just flash it to your router as you would with any other firmware image, according to your current firmware (stock, OpenWRT/LEDE, DD-WRT, etc.).  
+Get the firmware image from [here](http://www.mediafire.com/file/nznfls2k1ba72nz/ubuntu-wrt_17.08.1.bin) and just flash it to your router as you would with any other firmware image, according to your current firmware (stock, OpenWRT/LEDE, DD-WRT, etc.).  
 
 ### 3.3. Booting
 Just plug in the ROOTFS USB thumb, start your router and enjoy!  
