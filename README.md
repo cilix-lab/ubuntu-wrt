@@ -1,6 +1,9 @@
 # Ubuntu WRT
 Ubuntu Xenial 16.04.2 for Linksys WRT3200ACM router.  
-Current version is UbuntuWRT 17.08.  
+Current version is UbuntuWRT 17.08.1.  
+
+## Important Note
+There were several configuration issues in 17.08 release. They have now been resolved and UbuntuWRT works right away. Remember to wait at least 3 minutes in it's first boot, since it will boot, setup some things like SSH keys, and reboot.  
 
 ## 1. Introduction
 This project intends to keep an updated distribution of Ubuntu for the Linksys WRT3200ACM wireless router.
@@ -9,6 +12,7 @@ This project intends to keep an updated distribution of Ubuntu for the Linksys W
 * Chrooted BIND9 DNS server for local network with Dynamic DNS enabled.  
 * ISC-DHCP-Server.  
 * [SQM-scripts](https://github.com/tohojo/sqm-scripts) for traffic shapping. Check sample configuration in /etc/sqm. Kernel has been compiled with [CAKE](https://www.bufferbloat.net/projects/codel/wiki/Cake/) support.  
+* Adblock and other helper scripts.  
 * hostapd 2.6 and wpa_supplicant 2.6.  
 * dibbler-client and dibbler-server for DHCPv6 support.  
 * mwlwifi 10.3.4.0-20170810 at commit [9a6db69](https://github.com/kaloz/mwlwifi/commit/9a6db695f17c0c9ec5d4602afc9c36290c3bdea1).  
@@ -94,6 +98,11 @@ Then install all needed software and copy the modified rootfs files.
 * No udev rules are needed. eth0 interface is used for the LAN and eth1 for the WAN. The wireless interfaces are mlan0 (mwifiex), wlan0 and wlan1 (mwlwifi).  
 
 ## 5. Changelog
+
+### 17.08.1
+* Added adblock.sh script.  
+* Fixed several configuration issues.  
+* Minor bug fixes.  
 
 ### 17.08
 * OpenSSH generates ssh keys on first boot.
