@@ -1,0 +1,9 @@
+Package: linux-modules
+Version: 17.08.2
+Architecture: armhf
+Essential: yes
+Section: kernel
+Priority: required
+Maintainer: Claus Sebastian Hinrichs
+Installed-Size: 198724
+Description: Ubuntu-WRT kernel modules for 17.08.2 release.
