@@ -2,6 +2,41 @@
 Ubuntu Xenial 16.04.2 for Linksys WRT3200ACM router.  
 Current version is UbuntuWRT 17.08.2.  
 
+## Hostapd KRACK vulnerability
+Patches for hostapd KRACK vulnerability have been released. I've merged those patches and rebuilt hostapd and will soon include it in a new ROOTFS release, but for the moment, you can download the packages in this repo `packages` folder and update it yourself.  
+To update hostapd and wpa_supplicant to the patched v2.6, I recommend to take the USB thumb with the ROOTFS and plug it to a computer, and follow this procedure:   
+
+```
+# mount the USB thumb (/dev/sdb1) to /mnt  
+sudo mount /dev/sdb1 /mnt  
+
+# copy the downloaded packages somewhere in the USB thumb.  
+sudo cp packages/*.deb /mnt/root/  
+
+# chroot into the USB thumb  
+sudo chroot /mnt  
+```
+
+Now, in the chroot environment:  
+
+```
+# remove hostapd and wpa_supplicant  
+apt-get remove hostapd wpa_supplicant  
+
+# make sure none of the following files exist  
+rm /usr/local/bin/hostapd*  
+rm /usr/local/sbin/wpa_*  
+
+# now install the packages  
+cd /root  
+dpkg -i hostapd_2.6-0ubuntu6_armhf.deb  
+dpkg -i wpasupplicant_2.6-0ubuntu6_armhf.deb 
+
+exit  
+```
+
+That's it. Unmount the USB thumb and plug it back in the router.
+
 ## 1. Introduction
 This project intends to keep an updated distribution of Ubuntu for the Linksys WRT3200ACM wireless router.
 
