@@ -24,19 +24,45 @@ echo "This script will pull sources from git and update Ubuntu-WRT."
 echo "Sources will be pulled within the parent directory: $workdir"
 if ! ask "Do you wish to continue?" "y"; then exit 0; fi
 
+echo -e "\nPlease, select the distribution you wish to update:"
+echo "1) ubuntu-zesty"
+echo "2) ubuntu-xenial"
+read -p "Distribution [1]: " d
+t=0; while true; do
+  [ -z $d ] && d=1
+  case $d in
+    1 )
+      distro="ubuntu-zesty"
+      unset d
+      break
+      ;;
+    2 )
+      distro="ubuntu-xenial"
+      unset d
+      break
+      ;;
+    * )
+      t=$((t+1)); [ $t -gt 3 ] && echo "Too many times. Quitting." && exit 1
+      echo "$d is not a valid option. Try again."
+      read d
+      ;;
+  esac
+done; unset t
+echo
+
 # mwlwifi
 cd "$workdir"; echo "Updating mwlwifi... "
 [ ! -d ./mwlwifi ] && git clone https://github.com/kaloz/mwlwifi.git
 if cd mwlwifi; then
   git pull; cd ..
-  if rm -rf ubuntu-wrt/ubuntu-xenial/drivers/mwlwifi; then
-    cp -r mwlwifi ubuntu-wrt/ubuntu-xenial/drivers/
-    rm -rf ubuntu-wrt/ubuntu-xenial/drivers/mwlwifi/.git
-    mv -f ubuntu-wrt/ubuntu-xenial/drivers/mwlwifi/Makefile.kernel ubuntu-wrt/ubuntu-xenial/drivers/mwlwifi/Makefile
+  if rm -rf ubuntu-wrt/$distro/drivers/mwlwifi; then
+    cp -r mwlwifi ubuntu-wrt/$distro/drivers/
+    rm -rf ubuntu-wrt/$distro/drivers/mwlwifi/.git
+    mv -f ubuntu-wrt/$distro/drivers/mwlwifi/Makefile.kernel ubuntu-wrt/$distro/drivers/mwlwifi/Makefile
     # update firmware
-    rm -rf ubuntu-wrt/ubuntu-xenial/firmware/mwlwifi
-    mv ubuntu-wrt/ubuntu-xenial/drivers/mwlwifi/bin/firmware ubuntu-wrt/ubuntu-xenial/firmware/mwlwifi
-    rm -rf ubuntu-wrt/ubuntu-xenial/drivers/mwlwifi/bin
+    rm -rf ubuntu-wrt/$distro/firmware/mwlwifi
+    mv ubuntu-wrt/$distro/drivers/mwlwifi/bin/firmware ubuntu-wrt/$distro/firmware/mwlwifi
+    rm -rf ubuntu-wrt/$distro/drivers/mwlwifi/bin
   else
     echo "mwlwifi driver missing. Maybe not right branch?"
   fi
@@ -50,8 +76,8 @@ cd "$workdir"; echo "Updating mwifiex firmware... "
 [ ! -d ./linux-firmware ] && git clone git://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git
 if cd linux-firmware; then
   git pull; cd ..
-  if rm -f ubuntu-wrt/ubuntu-xenial/firmware/mrvl/*; then
-    cp -f linux-firmware/mrvl/sd8887_uapsta.bin ubuntu-wrt/ubuntu-xenial/firmware/mrvl/sd8887_uapsta.bin
+  if rm -f ubuntu-wrt/$distro/firmware/mrvl/*; then
+    cp -f linux-firmware/mrvl/sd8887_uapsta.bin ubuntu-wrt/$distro/firmware/mrvl/sd8887_uapsta.bin
   else
     echo "mwifiex firmware missing. Maybe not right branch?"
   fi
@@ -65,7 +91,7 @@ cd "$workdir"; echo "Updating sch_cake... "
 [ ! -d ./sch_cake ] && git clone https://github.com/dtaht/sch_cake.git
 if cd sch_cake; then
   git pull; cd ..
-  cp -f sch_cake/*.c sch_cake/*.h ubuntu-wrt/ubuntu-xenial/net/sched/
+  cp -f sch_cake/*.c sch_cake/*.h ubuntu-wrt/$distro/net/sched/
 else
   echo "Failed to clone sch_cake."
   err=$((err+100))
@@ -76,7 +102,7 @@ cd "$workdir"; echo "Updating wireless-regdb... "
 [ ! -d ./wireless-regdb ] && git clone git://git.kernel.org/pub/scm/linux/kernel/git/linville/wireless-regdb.git
 if cd wireless-regdb; then
   git pull; cd ..
-  cp -f wireless-regdb/db.txt ubuntu-wrt/ubuntu-xenial/net/wireless/db.txt
+  cp -f wireless-regdb/db.txt ubuntu-wrt/$distro/net/wireless/db.txt
 else
   echo "Failed to clone wireless-regdb."
   err=$((err+1000))
@@ -84,13 +110,12 @@ fi
 
 cd "$workdir"
 if [ $err == 0 ]; then
-  if ask "Done. Do you wish to run ubuntu-wrt ./merge to update ubuntu-xenial sources?" "n"; then
-    [ -d "$workdir/ubuntu-xenial" ] &&\
-    ubuntu-wrt/merge -s ubuntu-wrt/ubuntu-xenial -t ubuntu-xenial -i ||\
-    echo "$workdir/ubuntu-xenial does not exist."
+  if ask "Done. Do you wish to run ubuntu-wrt ./merge to update $distro sources?" "n"; then
+    [ -d "$workdir/$distro" ] &&\
+    ubuntu-wrt/merge -s ubuntu-wrt/$distro -t $distro -i ||\
+    echo "$workdir/$distro does not exist."
   fi
 else
   echo "There have been errors during update."
   exit $err
 fi
-
