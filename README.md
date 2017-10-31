@@ -1,9 +1,9 @@
 # Ubuntu WRT
-Ubuntu distribution based on Zesty 17.04 for Linksys WRT3200ACM router.  
+Ubuntu distribution based on 17.04 Zesty for Linksys WRT3200ACM router.  
 Current version is UbuntuWRT 17.10.  
 
 ## Hostapd KRACK vulnerability
-Patched hostapd and wpa_supplicant have been included in the latest ROOTFS and they have been packaged and pushed to the new UbuntuWRT repository! If you have an older UbuntuWRT release, see "Adding UbuntuWRT repository".   
+Patched hostapd and wpa_supplicant have been included in the latest ROOTFS and they have been packaged and pushed to the new UbuntuWRT repository! If you have an older UbuntuWRT release, see "3.7. Adding UbuntuWRT repository".   
 
 ## 1. Introduction
 This project intends to keep an updated distribution of Ubuntu for the Linksys WRT3200ACM wireless router.
@@ -13,14 +13,14 @@ This project intends to keep an updated distribution of Ubuntu for the Linksys W
 * ISC-DHCP-Server.  
 * [SQM-scripts](https://github.com/tohojo/sqm-scripts) for traffic shapping. Check sample configuration in /etc/sqm. Kernel has been compiled with [CAKE](https://www.bufferbloat.net/projects/codel/wiki/Cake/) support.  
 * Adblock and other helper scripts.  
-* hostapd 2.6 and wpa_supplicant 2.6.  
+* hostapd 2.6 and wpa_supplicant 2.6 with KRACK vulnerability fix.  
 * mwlwifi 10.3.4.0-20170810 at commit [e119077](https://github.com/kaloz/mwlwifi/commit/e119077b68d64e368cb9cc46bd364308db4289dc).  
 
 ## 3. The easy way
 
 ### 3.1. Get the ROOTFS (17.10)
 First, download the ROOTFS:  
-[ubuntu-wrt_zesty_17.10.tar.bz2](http://www.mediafire.com/file/b6ah55mqdk36qav/ubuntu-wrt_zesty_17.10.tar.bz2)  
+[ubuntu-wrt_zesty_17.10.tar.bz2](https://www.mediafire.com/file/3cafnu5wcde5al1/ubuntu-wrt_zesty_17.10.tar.bz2)  
 [ubuntu-wrt_zesty_17.10.tar.bz2 (mirror)](https://wrt.hinrichs.io/downloads/17.10/ubuntu-wrt_zesty_17.10.tar.bz2)  
 Extract the archive to an ext4 formatted USB thumb. Preferably, opt for a USB 3.0 thumb, since it will improve the system's performance considerably over USB 2.0.  
 
@@ -63,7 +63,7 @@ To enable DFS channels, be sure to edit the REGDOMAIN in "/etc/default/crda" and
 
 ## 3.6. Updates
 Updates are now easily pushed through the new UbuntuWRT repository, which is already included in APT's sources.list in the latest ROOTFS.  
-When updates are available, they will be pushed to the repository as the "linux-modules" packages which is already installed in the latest ROOTFS and contains all kernel modules and firmware image. The update will verify that you are updating "linux-modules" in a WRT3200ACM router and proceed with flashing the firmware.  
+When updates are available, they will be pushed to the repository as the "linux-modules" package which is already installed in the latest ROOTFS and contains all kernel modules and firmware image. The update will verify that you are updating "linux-modules" in a WRT3200ACM router and proceed with flashing the firmware.  
 The repository contains updates and some packages compiled specifically for the WRT3200ACM router.  
 
 ## 3.7. Adding UbuntuWRT repository
@@ -71,14 +71,14 @@ If you have an older release, you can add the UbuntuWRT repository to get the la
 Important! Keep in mind that this repository's packages are built with the latest UbuntuWRT in mind and they are only tested on that system, so there's no guarantee that they will work properly if you install on older releases.  
 
 ```
-# Adding UbuntuWRT repository to APT's sources.list
-echo "deb http://wrt.hinrichs.io/ubuntu zesty main" >> /etc/apt/sources.list
+# Adding UbuntuWRT repository to APT's sources.list  
+echo "deb http://wrt.hinrichs.io/ubuntu zesty main" >> /etc/apt/sources.list  
 
-# Get the repository key
-wget -qO - https://wrt.hinrichs.io/downloads/ubuntuwrt.key | apt-key add -
+# Get the repository key  
+wget -qO - https://wrt.hinrichs.io/downloads/ubuntuwrt.key | apt-key add -  
 
-# Update lists
-apt-get update
+# Update lists  
+apt-get update  
 ```
 
 ## 4. The hard way (not updated)
@@ -132,7 +132,7 @@ Then install all needed software and copy the modified rootfs files.
 
 ### 17.10
 * New UbuntuWRT repository. Already configured in latest ROOTFS.  
-* Now specially curated packages for the WRT3200ACM are provided directly through the UbuntuWRT repository.
+* Now curated packages for the WRT3200ACM are provided directly through the UbuntuWRT repository.
 * Upgraded base system to Ubuntu Zesty 17.04.  
 * Minor bug fixes and configuration changes.  
 
