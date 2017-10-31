@@ -1,41 +1,9 @@
 # Ubuntu WRT
-Ubuntu Xenial 16.04.2 for Linksys WRT3200ACM router.  
-Current version is UbuntuWRT 17.08.2.  
+Ubuntu distribution based on Zesty 17.04 for Linksys WRT3200ACM router.  
+Current version is UbuntuWRT 17.10.  
 
 ## Hostapd KRACK vulnerability
-Patches for hostapd KRACK vulnerability have been released. I've merged those patches and rebuilt hostapd and will soon include it in a new ROOTFS release, but for the moment, you can download the packages in this repo `packages` folder and update it yourself.  
-To update hostapd and wpa_supplicant to the patched v2.6, I recommend to take the USB thumb with the ROOTFS and plug it to a computer, and follow this procedure:   
-
-```
-# mount the USB thumb (/dev/sdb1) to /mnt  
-sudo mount /dev/sdb1 /mnt  
-
-# copy the downloaded packages somewhere in the USB thumb.  
-sudo cp packages/*.deb /mnt/root/  
-
-# chroot into the USB thumb  
-sudo chroot /mnt  
-```
-
-Now, in the chroot environment:  
-
-```
-# remove hostapd and wpa_supplicant  
-apt-get remove hostapd wpa_supplicant  
-
-# make sure none of the following files exist  
-rm /usr/local/bin/hostapd*  
-rm /usr/local/sbin/wpa_*  
-
-# now install the packages  
-cd /root  
-dpkg -i hostapd_2.6-0ubuntu6_armhf.deb  
-dpkg -i wpasupplicant_2.6-0ubuntu6_armhf.deb 
-
-exit  
-```
-
-That's it. Unmount the USB thumb and plug it back in the router.
+Patched hostapd and wpa_supplicant have been included in the latest ROOTFS and they have been packaged and pushed to the new UbuntuWRT repository! If you have an older UbuntuWRT release, see "Adding UbuntuWRT repository".   
 
 ## 1. Introduction
 This project intends to keep an updated distribution of Ubuntu for the Linksys WRT3200ACM wireless router.
@@ -46,46 +14,27 @@ This project intends to keep an updated distribution of Ubuntu for the Linksys W
 * [SQM-scripts](https://github.com/tohojo/sqm-scripts) for traffic shapping. Check sample configuration in /etc/sqm. Kernel has been compiled with [CAKE](https://www.bufferbloat.net/projects/codel/wiki/Cake/) support.  
 * Adblock and other helper scripts.  
 * hostapd 2.6 and wpa_supplicant 2.6.  
-* dibbler-client and dibbler-server for DHCPv6 support.  
-* mwlwifi 10.3.4.0-20170810 at commit [9a6db69](https://github.com/kaloz/mwlwifi/commit/9a6db695f17c0c9ec5d4602afc9c36290c3bdea1).  
+* mwlwifi 10.3.4.0-20170810 at commit [e119077](https://github.com/kaloz/mwlwifi/commit/e119077b68d64e368cb9cc46bd364308db4289dc).  
 
 ## 3. The easy way
 
-### 3.1. Get the ROOTFS (17.08.1)
-First, download the ROOTFS from [here](http://www.mediafire.com/file/wq9c8ufszducfwc/ubuntu-wrt_17.08.1_rootfs.tar.bz2) and extract the archive to an ext4 formatted USB thumb. Preferably, opt for a USB 3.0 thumb, since it will considerably improve the system's performance over USB 2.0.  
+### 3.1. Get the ROOTFS (17.10)
+First, download the ROOTFS:  
+[ubuntu-wrt_zesty_17.10.tar.bz2](http://www.mediafire.com/file/b6ah55mqdk36qav/ubuntu-wrt_zesty_17.10.tar.bz2)  
+[ubuntu-wrt_zesty_17.10.tar.bz2 (mirror)](https://wrt.hinrichs.io/downloads/17.10/ubuntu-wrt_zesty_17.10.tar.bz2)  
+Extract the archive to an ext4 formatted USB thumb. Preferably, opt for a USB 3.0 thumb, since it will improve the system's performance considerably over USB 2.0.  
 
-### 3.2. Get the firmware (17.08.1)
-Get the firmware image from [here](http://www.mediafire.com/file/nznfls2k1ba72nz/ubuntu-wrt_17.08.1.bin) and just flash it to your router as you would with any other firmware image, according to your current firmware (stock, OpenWRT/LEDE, DD-WRT, etc.).  
+### 3.2. Get the firmware (17.10)
+Get the firmware image:  
+[wrt3200acm_4.10.17-37.41-0.bin](http://www.mediafire.com/file/oll4p9eudw6dawo/wrt3200acm_4.10.17-37.41-0.bin)  
+[wrt3200acm_4.10.17-37.41-0.bin (mirror)](https://wrt.hinrichs.io/downloads/17.10/wrt3200acm_4.10.17-37.41-0.bin)  
+Flash it to your router as you would with any other firmware image, according to your current firmware (stock, OpenWRT/LEDE, DD-WRT, etc.).  
 
 ### 3.3. Booting
-Just plug in the ROOTFS USB thumb, start your router and enjoy!  
-In it's first boot, the router will finish some tasks and reboot, so give it time.  
+Plug in the ROOTFS USB thumb after flashing, start your router and enjoy!  
+In it's first boot, the router will finish some tasks (like generating SSH keys) and reboot, so give it at least 3 minutes.  
 
-### 3.4.Updating to 17.08.2
-Download the modules update package from [here](http://www.mediafire.com/file/45he6g1jc6emh61/linux-modules_17.08.2-0_armhf.deb) and the firmware update from [here](https://www.mediafire.com/file/55a285t7aa954j9/ubuntu-wrt_17.08.2.img).  
-First install the `linux-modules_17.08.2-0_armhf.deb` package in a CHROOT environment or on the already booted router. This will install all 17.08.2 modules.  
-Once the modules are installed, you can flash the new firmware `ubuntu-wrt_17.08.2.img` to the router.  
-
-```
-# copy file to router  
-scp linux-modules_17.08.2-0_armhf.deb root@ubuntuwrt.local:~/  
-scp ubuntu-wrt_17.08.2.img root@ubuntuwrt.local:~/  
-
-# install modules  
-dpkg -i ~/linux-modules_17.08.2-0_armhf.deb  
-
-# erase flash
-flash_erase /dev/mtd5 0 0  
-flash_erase /dev/mtd6 0 0  
-flash_erase /dev/mtd7 0 0  
-flash_erase /dev/mtd8 0 0  
-
-# write new firmware  
-nandwrite -p /dev/mtd5 ~/ubuntu-wrt_17.08.2.img  
-nandwrite -p /dev/mtd7 ~/ubuntu-wrt_17.08.2.img  
-```
-
-### 3.5. Defaults
+### 3.4. Defaults
 The default wireless configuration is:  
 
 * 2.4GHz SSID: UbuntuWRT_2.4GHz  
@@ -100,7 +49,7 @@ The default login:
 * User: root  
 * Password: admin  
 
-### 3.6. Setting it up
+### 3.5. Setting it up
 You can setup your router as you would with an Ubuntu headless server.  
 
 There are a couple helper scripts in "/scripts", which will help you setup a PPPoE connection and/or enable the Marvell DSA switch.  
@@ -112,7 +61,27 @@ Files you might want to check out:
 
 To enable DFS channels, be sure to edit the REGDOMAIN in "/etc/default/crda" and change it in hostapd config ("/etc/hostpad").  
 
-## 4. The hard way
+## 3.6. Updates
+Updates are now easily pushed through the new UbuntuWRT repository, which is already included in APT's sources.list in the latest ROOTFS.  
+When updates are available, they will be pushed to the repository as the "linux-modules" packages which is already installed in the latest ROOTFS and contains all kernel modules and firmware image. The update will verify that you are updating "linux-modules" in a WRT3200ACM router and proceed with flashing the firmware.  
+The repository contains updates and some packages compiled specifically for the WRT3200ACM router.  
+
+## 3.7. Adding UbuntuWRT repository
+If you have an older release, you can add the UbuntuWRT repository to get the latest updates and packages curated for the WRT3200ACM router.  
+Important! Keep in mind that this repository's packages are built with the latest UbuntuWRT in mind and they are only tested on that system, so there's no guarantee that they will work properly if you install on older releases.  
+
+```
+# Adding UbuntuWRT repository to APT's sources.list
+echo "deb http://wrt.hinrichs.io/ubuntu zesty main" >> /etc/apt/sources.list
+
+# Get the repository key
+wget -qO - https://wrt.hinrichs.io/downloads/ubuntuwrt.key | apt-key add -
+
+# Update lists
+apt-get update
+```
+
+## 4. The hard way (not updated)
 
 ### 4.1. How to compile the kernel
 First, you have to get the Linux Kernel from Ubuntu. For the current commit, Ubuntu-lts-4.10.0-9.11_16.04.2 was used.
@@ -161,6 +130,12 @@ Then install all needed software and copy the modified rootfs files.
 
 ## 5. Changelog
 
+### 17.10
+* New UbuntuWRT repository. Already configured in latest ROOTFS.  
+* Now specially curated packages for the WRT3200ACM are provided directly through the UbuntuWRT repository.
+* Upgraded base system to Ubuntu Zesty 17.04.  
+* Minor bug fixes and configuration changes.  
+
 ### 17.08.2
 * Updated mwlwifi firmware to version 9.3.8.
 
@@ -183,11 +158,10 @@ Then install all needed software and copy the modified rootfs files.
 
 # Important Notice
 * This works on WRT3200ACM. No tests have been done on any other Linksys' WRT routers.  
-* Must compile hostapd-2.6 and wpa_supplicant-2.6 for rootfs. (git://w1.fi/srv/git/hostap.git)  
-* To be able to use sch_cake, iproute2 with cake support needs to be compiled. (git://kau.toke.dk/cake/iproute2)  
+* Must compile hostapd-2.6 and wpa_supplicant-2.6 for rootfs. \* (git://w1.fi/srv/git/hostap.git)  
+* To be able to use sch_cake, iproute2 with cake support needs to be compiled. \* (git://kau.toke.dk/cake/iproute2)  
 
-## Note on 17.08
-There were several configuration issues in 17.08 release. They have now been resolved and UbuntuWRT works right away. Remember to wait at least 3 minutes in it's first boot, since it will boot, setup some things like SSH keys, and reboot.  
+\* Packages available through UbuntuWRT repository.  
 
 ## To understand more about the development of this project, follow the original thread on McDebian:
 [Linksys WRT1900AC, WRT1900ACS, WRT1200AC and WRT3200ACM Router Debian Implementation](https://www.snbforums.com/threads/linksys-wrt1900ac-wrt1900acs-wrt1200ac-and-wrt3200acm-router-debian-implementation.28394/)
