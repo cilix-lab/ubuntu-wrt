@@ -81,7 +81,7 @@ wget -qO - https://wrt.hinrichs.io/downloads/ubuntuwrt.key | apt-key add -
 apt-get update  
 ```
 
-## 4. The hard way (not updated)
+## 4. The hard way
 You can compile your own kernel and create the rootfs yourself. To acomplish this, you need to get the ubuntu kernel for the desired distribution, clone this repository, and merge this repository's ubuntu-xenial/ubuntu-zesty folder according to the distro you chose, with the kernel's.  
 
 For the rootfs, create a CHROOT environment out of the desired port of Ubuntu and install/build all necesary software. You can also choose to use UbuntuWRT repository too, following the instrucionts on "3.7. Adding UbuntuWRT repository".  
