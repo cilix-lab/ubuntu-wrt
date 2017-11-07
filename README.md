@@ -61,12 +61,12 @@ Files you might want to check out:
 
 To enable DFS channels, be sure to edit the REGDOMAIN in "/etc/default/crda" and change it in hostapd config ("/etc/hostpad").  
 
-## 3.6. Updates
+### 3.6. Updates
 Updates are now easily pushed through the new UbuntuWRT repository, which is already included in APT's sources.list in the latest ROOTFS.  
 When updates are available, they will be pushed to the repository as the "linux-modules" package which is already installed in the latest ROOTFS and contains all kernel modules and firmware image. The update will verify that you are updating "linux-modules" in a WRT3200ACM router and proceed with flashing the firmware.  
 The repository contains updates and some packages compiled specifically for the WRT3200ACM router.  
 
-## 3.7. Adding UbuntuWRT repository
+### 3.7. Adding UbuntuWRT repository
 If you have an older release, you can add the UbuntuWRT repository to get the latest updates and packages curated for the WRT3200ACM router.  
 Important! Keep in mind that this repository's packages are built with the latest UbuntuWRT in mind and they are only tested on that system, so there's no guarantee that they will work properly if you install on older releases.  
 
@@ -82,51 +82,9 @@ apt-get update
 ```
 
 ## 4. The hard way (not updated)
+You can compile your own kernel and create the rootfs yourself. To acomplish this, you need to get the ubuntu kernel for the desired distribution, clone this repository, and merge this repository's ubuntu-xenial/ubuntu-zesty folder according to the distro you chose, with the kernel's.  
 
-### 4.1. How to compile the kernel
-First, you have to get the Linux Kernel from Ubuntu. For the current commit, Ubuntu-lts-4.10.0-9.11_16.04.2 was used.
-
-```
-# Get kernel from ubuntu  
-git clone git://kernel.ubuntu.com/ubuntu/ubuntu-xenial.git  
-
-# Checkout  
-cd ubuntu-xenial; git checkout Ubuntu-lts-4.10.0-9.11_16.04.2  
-cd ..  
-
-# Clone this repository  
-git clone https://github.com/cilix-lab/ubuntu-wrt.git  
-
-# Copy all files in the ubuntu-xenial-4.10.0-9.11_16.04.2 folder to the linux kernel folder  
-cp -rf ubuntu-wrt/ubuntu-xenial-4.10.0-9.11_16.04.2/* ubuntu-xenial/  
-```
-
-Note: You can now use the merge tool provided. Just go to the root folder of this git and:  
-`./merge -s ubuntu-xenial -t ../ubuntu-xenial -i`  
-Provided you cloned the ubuntu kernel to ../ubuntu-xenial.  
-
-That's it! You can now compile the kernel. Remember to set the proper environment variables before compiling modules, dtbs and zImage:  
-
-```
-export ARCH=arm  
-export CROSS_COMPILE=arm-none-eabi-  
-```
-
-### 4.2. ROOTFS
-The rootfs folder contains all modified files that you need to add to a minimal ARM installation of Ubuntu. You should set a proper chroot environment:  
-
-```
-debootstrap --foreign --no-check-gpg --arch=armhf xenial /srv/chroot/ubuntu-wrt http://ports.ubuntu.com/  
-cp /usr/bin/qemu-arm-static /srv/chroot/ubuntu-wrt/usr/bin/  
-chroot /srv/chroot/ubuntu-wrt  
-/debootstrap/debootstrap --second-stage  
-```
-
-Then install all needed software and copy the modified rootfs files.
-
-### 4.3. Configuration
-* net.ifnames=0 was added to keep old kernel names for the interfaces.  
-* No udev rules are needed. eth0 interface is used for the LAN and eth1 for the WAN. The wireless interfaces are mlan0 (mwifiex), wlan0 and wlan1 (mwlwifi).  
+For the rootfs, create a CHROOT environment out of the desired port of Ubuntu and install/build all necesary software. You can also choose to use UbuntuWRT repository too, following the instrucionts on "3.7. Adding UbuntuWRT repository".  
 
 ## 5. Changelog
 
