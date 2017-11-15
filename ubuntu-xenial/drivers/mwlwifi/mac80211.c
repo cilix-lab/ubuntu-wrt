@@ -533,7 +533,8 @@ static int mwl_mac80211_sta_remove(struct ieee80211_hw *hw,
 	else
 		mwl_hif_set_sta_id(hw, sta, false, false);
 
-	utils_free_stnid(priv, sta_info->stnid);
+	if (priv->chip_type != MWL8964)
+		utils_free_stnid(priv, sta_info->stnid);
 	if (vif->type == NL80211_IFTYPE_STATION)
 		utils_free_stnid(priv, sta_info->sta_stnid);
 
@@ -730,7 +731,11 @@ static int mwl_mac80211_ampdu_action(struct ieee80211_hw *hw,
 			if (!rc) {
 				stream->state = AMPDU_STREAM_ACTIVE;
 				sta_info->check_ba_failed[tid] = 0;
-				sta_info->is_amsdu_allowed = params->amsdu;
+				if (priv->tx_amsdu)
+					sta_info->is_amsdu_allowed =
+						params->amsdu;
+				else
+					sta_info->is_amsdu_allowed = false;
 			} else {
 				spin_unlock_bh(&priv->stream_lock);
 				mwl_fwcmd_destroy_ba(hw, stream,

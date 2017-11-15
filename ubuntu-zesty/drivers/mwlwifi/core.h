@@ -178,6 +178,7 @@ struct mwl_priv {
 	bool disable_5g;
 	int antenna_tx;
 	int antenna_rx;
+	bool tx_amsdu;
 
 	struct mwl_tx_pwr_tbl tx_pwr_tbl[SYSADPT_MAX_NUM_CHANNELS];
 	bool cdd;
@@ -283,6 +284,7 @@ struct beacon_info {
 	u8 *ie_wsc_ptr;
 	u8 *ie_rsn_ptr;
 	u8 *ie_rsn48_ptr;
+	u8 *ie_mde_ptr;
 	u8 *ie_ht_ptr;
 	u8 *ie_vht_ptr;
 	u8 *ie_country_ptr;
@@ -290,6 +292,7 @@ struct beacon_info {
 	u8 ie_wsc_len;
 	u8 ie_rsn_len;
 	u8 ie_rsn48_len;
+	u8 ie_mde_len;
 	u8 ie_ht_len;
 	u8 ie_vht_len;
 	u8 ie_country_len;

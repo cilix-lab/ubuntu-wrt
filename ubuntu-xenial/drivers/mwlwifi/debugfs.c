@@ -250,6 +250,8 @@ static ssize_t mwl_debugfs_vif_read(struct file *file, char __user *ubuf,
 			  mwl_vif->beacon_info.ie_rsn_len, "RSN:");
 		dump_data(p, size, &len, mwl_vif->beacon_info.ie_rsn48_ptr,
 			  mwl_vif->beacon_info.ie_rsn48_len, "RSN48:");
+		dump_data(p, size, &len, mwl_vif->beacon_info.ie_mde_ptr,
+			  mwl_vif->beacon_info.ie_mde_len, "MDE:");
 		dump_data(p, size, &len, mwl_vif->beacon_info.ie_ht_ptr,
 			  mwl_vif->beacon_info.ie_ht_len, "HT:");
 		dump_data(p, size, &len, mwl_vif->beacon_info.ie_vht_ptr,
@@ -465,6 +467,63 @@ static ssize_t mwl_debugfs_device_pwrtbl_read(struct file *file,
 	ret = simple_read_from_buffer(ubuf, count, ppos, p, len);
 	free_page(page);
 
+	return ret;
+}
+
+static ssize_t mwl_debugfs_tx_amsdu_read(struct file *file,
+					 char __user *ubuf,
+					 size_t count, loff_t *ppos)
+{
+	struct mwl_priv *priv = (struct mwl_priv *)file->private_data;
+	unsigned long page = get_zeroed_page(GFP_KERNEL);
+	char *p = (char *)page;
+	int len = 0, size = PAGE_SIZE;
+	ssize_t ret;
+
+	if (!p)
+		return -ENOMEM;
+
+	len += scnprintf(p + len, size - len, "\n");
+	len += scnprintf(p + len, size - len, "tx amsdu: %s\n",
+			 priv->tx_amsdu ? "enable" : "disable");
+	len += scnprintf(p + len, size - len, "\n");
+
+	ret = simple_read_from_buffer(ubuf, count, ppos, p, len);
+	free_page(page);
+
+	return ret;
+}
+
+static ssize_t mwl_debugfs_tx_amsdu_write(struct file *file,
+					  const char __user *ubuf,
+					  size_t count, loff_t *ppos)
+{
+	struct mwl_priv *priv = (struct mwl_priv *)file->private_data;
+	unsigned long addr = get_zeroed_page(GFP_KERNEL);
+	char *buf = (char *)addr;
+	size_t buf_size = min_t(size_t, count, PAGE_SIZE - 1);
+	int value;
+	ssize_t ret;
+
+	if (!buf)
+		return -ENOMEM;
+
+	if (copy_from_user(buf, ubuf, buf_size)) {
+		ret = -EFAULT;
+		goto err;
+	}
+
+	if (kstrtoint(buf, 0, &value)) {
+		ret = -EINVAL;
+		goto err;
+	}
+
+	priv->tx_amsdu = value ? true : false;
+
+	ret = count;
+
+err:
+	free_page(addr);
 	return ret;
 }
 
@@ -925,6 +984,7 @@ MWLWIFI_DEBUGFS_FILE_READ_OPS(sta);
 MWLWIFI_DEBUGFS_FILE_READ_OPS(ampdu);
 MWLWIFI_DEBUGFS_FILE_READ_OPS(stnid);
 MWLWIFI_DEBUGFS_FILE_READ_OPS(device_pwrtbl);
+MWLWIFI_DEBUGFS_FILE_OPS(tx_amsdu);
 MWLWIFI_DEBUGFS_FILE_OPS(dfs_channel);
 MWLWIFI_DEBUGFS_FILE_OPS(dfs_radar);
 MWLWIFI_DEBUGFS_FILE_OPS(thermal);
@@ -950,6 +1010,7 @@ void mwl_debugfs_init(struct ieee80211_hw *hw)
 	MWLWIFI_DEBUGFS_ADD_FILE(ampdu);
 	MWLWIFI_DEBUGFS_ADD_FILE(stnid);
 	MWLWIFI_DEBUGFS_ADD_FILE(device_pwrtbl);
+	MWLWIFI_DEBUGFS_ADD_FILE(tx_amsdu);
 	MWLWIFI_DEBUGFS_ADD_FILE(dfs_channel);
 	MWLWIFI_DEBUGFS_ADD_FILE(dfs_radar);
 	MWLWIFI_DEBUGFS_ADD_FILE(thermal);
