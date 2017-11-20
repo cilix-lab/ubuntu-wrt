@@ -16,7 +16,6 @@ iface eth0 inet manual
 
 allow-hotplug eth1
 iface eth1 inet dhcp
-	pre-up ifconfig eth1 hw ether $(strings /dev/mtd3 | grep hw_mac_addr | cut -d= -f2)
 	pre-up iptables-restore < /etc/iptables.rules
 	pre-up ip6tables-restore < /etc/ip6tables.rules
 

@@ -1,0 +1,9 @@
+#!/bin/sh
+# set eth1 MAC
+
+if [ "$IFACE" = "eth1" ]; then
+	ETHMAC=`strings /dev/mtd3 | grep hw_mac_addr | cut -d= -f2`
+	ifconfig eth1 hw ether "$ETHMAC"
+fi
+
+exit 0
