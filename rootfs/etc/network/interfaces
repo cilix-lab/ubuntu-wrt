@@ -16,8 +16,6 @@ iface eth0 inet manual
 
 allow-hotplug eth1
 iface eth1 inet dhcp
-	pre-up iptables-restore < /etc/iptables.rules
-	pre-up ip6tables-restore < /etc/ip6tables.rules
 
 auto br0
 iface br0 inet static
