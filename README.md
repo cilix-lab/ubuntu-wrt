@@ -20,7 +20,7 @@ This project intends to keep an updated distribution of Ubuntu for the Linksys W
 
 ### 3.1. Get the ROOTFS (17.10)
 First, download the ROOTFS:  
-[ubuntu-wrt_zesty_17.10.tar.bz2](https://www.mediafire.com/file/3cafnu5wcde5al1/ubuntu-wrt_zesty_17.10.tar.bz2)  
+[ubuntu-wrt_zesty_17.10.tar.bz2](https://www.mediafire.com/file/ho9m7ywt15bpon1/ubuntu-wrt_zesty_17.10.tar.bz2)  
 [ubuntu-wrt_zesty_17.10.tar.bz2 (mirror)](https://wrt.hinrichs.io/downloads/17.10/ubuntu-wrt_zesty_17.10.tar.bz2)  
 Extract the archive to an ext4 formatted USB thumb. Preferably, opt for a USB 3.0 thumb, since it will improve the system's performance considerably over USB 2.0.  
 
