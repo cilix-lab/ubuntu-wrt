@@ -1,6 +1,0 @@
-#!/bin/sh
-# start SQM scripts on interface up
-
-/usr/bin/sqm start "$IFACE"
-
-exit 0

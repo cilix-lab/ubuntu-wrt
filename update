@@ -26,33 +26,39 @@ if ! ask "Do you wish to continue?" "y"; then exit 0; fi
 
 echo -e "\nPlease, select the distribution you wish to update:"
 echo "1) all"
-echo "2) ubuntu-zesty"
-echo "3) ubuntu-xenial"
-read -p "Distribution [1]: " d
+
+s=1; opts=""; for d in $(realpath `dirname $0`)/ubuntu-*; do
+  distro=$(basename $d)
+  s=$((s+1))
+  echo "$s) $distro"
+  opts="$opts;$s,$distro"
+done; unset distro; unset s
+
+read -p "Distribution [1]: " d; [ -z $d ] && d="1"
+
 t=0; while true; do
-  [ -z $d ] && d=1
-  case $d in
-    1 )
-      distro="all"
-      unset d
+
+  if [ $d -eq 1 ]; then
+    distro="all"
+    break
+  fi
+
+  for i in $(echo $opts | sed "s/;/ /g"); do
+    o=`echo $i | cut -d ',' -f1`
+    if [ $d = $o ]; then
+      distro=`echo $i | cut -d ',' -f2`
       break
-      ;;
-    2 )
-      distro="ubuntu-zesty"
-      unset d
-      break
-      ;;
-    3 )
-      distro="ubuntu-xenial"
-      unset d
-      break
-      ;;
-    * )
-      t=$((t+1)); [ $t -gt 3 ] && echo "Too many times. Quitting." && exit 1
-      echo "$d is not a valid option. Try again."
-      read d
-      ;;
-  esac
+    fi
+  done
+
+  if [ -z "$distro" ]; then
+    t=$((t+1)); [ $t -gt 3 ] && echo "Too many times. Quitting." && exit 1
+    read -p "$d is not a valid option. Try again: " d
+    continue
+  fi
+
+  break
+
 done; unset t
 echo
 
@@ -116,19 +122,20 @@ else
 fi
 
 cd "$workdir"
-if [ $err == 0 ]; then
+if [ $err = 0 ]; then
   if ask "Done. Do you wish to run ubuntu-wrt ./merge to update $distro sources?" "n"; then
     [ -d "$workdir/$distro" ] &&\
     ubuntu-wrt/merge -s ubuntu-wrt/$distro -t $distro -i ||\
     echo "$workdir/$distro does not exist."
   fi
+  echo
 else
   echo "There have been errors during update."
   exit $err
 fi
 }
 
-if [ "$distro" == "all" ]; then
+if [ "$distro" = "all" ]; then
   for d in $(realpath `dirname $0`)/ubuntu-*; do
     distro=$(basename $d)
     echo "Updating $distro... "
