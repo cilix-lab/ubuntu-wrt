@@ -1,6 +1,6 @@
 # Ubuntu WRT
 Ubuntu distribution based on 17.04 Zesty for Linksys WRT3200ACM router.  
-Current version is UbuntuWRT 17.10.  
+Current version is UbuntuWRT 17.10.1.  
 
 ## Hostapd KRACK vulnerability
 Patched hostapd and wpa_supplicant have been included in the latest ROOTFS and they have been packaged and pushed to the new UbuntuWRT repository! If you have an older UbuntuWRT release, see "3.7. Adding UbuntuWRT repository".   
@@ -14,20 +14,20 @@ This project intends to keep an updated distribution of Ubuntu for the Linksys W
 * [SQM-scripts](https://github.com/tohojo/sqm-scripts) for traffic shapping. Check sample configuration in /etc/sqm. Kernel has been compiled with [CAKE](https://www.bufferbloat.net/projects/codel/wiki/Cake/) support.  
 * Adblock and other helper scripts.  
 * hostapd 2.6 and wpa_supplicant 2.6 with KRACK vulnerability fix.  
-* mwlwifi 10.3.4.0-20170810 at commit [e119077](https://github.com/kaloz/mwlwifi/commit/e119077b68d64e368cb9cc46bd364308db4289dc).  
+* mwlwifi 10.3.4.0-20170810 at commit [466368f](https://github.com/kaloz/mwlwifi/commit/466368f9454250c2bc024795600d92564553d9bb).  
 
 ## 3. The easy way
 
 ### 3.1. Get the ROOTFS (17.10)
 First, download the ROOTFS:  
-[ubuntu-wrt_zesty_17.10.tar.bz2](https://www.mediafire.com/file/ho9m7ywt15bpon1/ubuntu-wrt_zesty_17.10.tar.bz2)  
-[ubuntu-wrt_zesty_17.10.tar.bz2 (mirror)](https://wrt.hinrichs.io/downloads/17.10/ubuntu-wrt_zesty_17.10.tar.bz2)  
+[ubuntu-wrt_zesty_17.10.1.tar.bz2](https://www.mediafire.com/file/eswojytdl7tp9ob/ubuntu-wrt_zesty_17.10.1.tar.bz2)  
+[ubuntu-wrt_zesty_17.10.1.tar.bz2 (mirror)](https://wrt.hinrichs.io/downloads/17.10.1/ubuntu-wrt_zesty_17.10.1.tar.bz2)  
 Extract the archive to an ext4 formatted USB thumb. Preferably, opt for a USB 3.0 thumb, since it will improve the system's performance considerably over USB 2.0.  
 
 ### 3.2. Get the firmware (17.10)
 Get the firmware image:  
-[wrt3200acm_4.10.17-37.41-0.bin](http://www.mediafire.com/file/oll4p9eudw6dawo/wrt3200acm_4.10.17-37.41-0.bin)  
-[wrt3200acm_4.10.17-37.41-0.bin (mirror)](https://wrt.hinrichs.io/downloads/17.10/wrt3200acm_4.10.17-37.41-0.bin)  
+[wrt3200acm_4.10.17-40.44-0.bin](https://www.mediafire.com/file/c5l6d18ppcg9qt8/wrt3200acm_4.10.17-40.44-0.bin)  
+[wrt3200acm_4.10.17-40.44-0.bin (mirror)](https://wrt.hinrichs.io/downloads/17.10.1/wrt3200acm_4.10.17-40.44-0.bin)  
 Flash it to your router as you would with any other firmware image, according to your current firmware (stock, OpenWRT/LEDE, DD-WRT, etc.).  
 
 ### 3.3. Booting
@@ -88,6 +88,12 @@ For the rootfs, create a CHROOT environment out of the desired port of Ubuntu an
 
 ## 5. Changelog
 
+### 17.10.1
+* Updated kernel to 4.10.17-40.44-0.  
+* Updated mwlwifi to commit [466368f](https://github.com/kaloz/mwlwifi/commit/466368f9454250c2bc024795600d92564553d9bb).  
+* Changed network configuration to properly set eth1 MAC from script.  
+* Minor fixes to some configuration files.  
+
 ### 17.10
 * New UbuntuWRT repository. Already configured in latest ROOTFS.  
 * Now curated packages for the WRT3200ACM are provided directly through the UbuntuWRT repository.
@@ -123,4 +129,3 @@ For the rootfs, create a CHROOT environment out of the desired port of Ubuntu an
 
 ## To understand more about the development of this project, follow the original thread on McDebian:
 [Linksys WRT1900AC, WRT1900ACS, WRT1200AC and WRT3200ACM Router Debian Implementation](https://www.snbforums.com/threads/linksys-wrt1900ac-wrt1900acs-wrt1200ac-and-wrt3200acm-router-debian-implementation.28394/)
-
