@@ -18,13 +18,13 @@ This project intends to keep an updated distribution of Ubuntu for the Linksys W
 
 ## 3. The easy way
 
-### 3.1. Get the ROOTFS (17.10)
+### 3.1. Get the ROOTFS (17.10.1)
 First, download the ROOTFS:  
 [ubuntu-wrt_zesty_17.10.1.tar.bz2](https://www.mediafire.com/file/eswojytdl7tp9ob/ubuntu-wrt_zesty_17.10.1.tar.bz2)  
 [ubuntu-wrt_zesty_17.10.1.tar.bz2 (mirror)](https://wrt.hinrichs.io/downloads/17.10.1/ubuntu-wrt_zesty_17.10.1.tar.bz2)  
 Extract the archive to an ext4 formatted USB thumb. Preferably, opt for a USB 3.0 thumb, since it will improve the system's performance considerably over USB 2.0.  
 
-### 3.2. Get the firmware (17.10)
+### 3.2. Get the firmware (17.10.1)
 Get the firmware image:  
 [wrt3200acm_4.10.17-40.44-0.bin](https://www.mediafire.com/file/c5l6d18ppcg9qt8/wrt3200acm_4.10.17-40.44-0.bin)  
 [wrt3200acm_4.10.17-40.44-0.bin (mirror)](https://wrt.hinrichs.io/downloads/17.10.1/wrt3200acm_4.10.17-40.44-0.bin)  
