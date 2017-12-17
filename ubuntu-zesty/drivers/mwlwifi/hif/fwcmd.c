@@ -2051,6 +2051,33 @@ int mwl_fwcmd_set_new_stn_add_sc4(struct ieee80211_hw *hw,
 	return 0;
 }
 
+int mwl_fwcmd_set_new_stn_wds_sc4(struct ieee80211_hw *hw, u8 *addr)
+{
+	struct mwl_priv *priv = hw->priv;
+	struct hostcmd_cmd_set_new_stn_sc4 *pcmd;
+
+	pcmd = (struct hostcmd_cmd_set_new_stn_sc4 *)&priv->pcmd_buf[0];
+
+	mutex_lock(&priv->fwcmd_mutex);
+
+	memset(pcmd, 0x00, sizeof(*pcmd));
+	pcmd->cmd_hdr.cmd = cpu_to_le16(HOSTCMD_CMD_SET_NEW_STN);
+	pcmd->cmd_hdr.len = cpu_to_le16(sizeof(*pcmd));
+
+	pcmd->action = cpu_to_le16(HOSTCMD_ACT_STA_ACTION_MODIFY);
+	ether_addr_copy(pcmd->mac_addr, addr);
+	pcmd->wds = cpu_to_le32(WDS_MODE);
+
+	if (mwl_hif_exec_cmd(priv->hw, HOSTCMD_CMD_SET_NEW_STN)) {
+		mutex_unlock(&priv->fwcmd_mutex);
+		return -EIO;
+	}
+
+	mutex_unlock(&priv->fwcmd_mutex);
+
+	return 0;
+}
+
 int mwl_fwcmd_set_new_stn_add_self(struct ieee80211_hw *hw,
 				   struct ieee80211_vif *vif)
 {
@@ -3091,7 +3118,10 @@ int mwl_fwcmd_get_fw_region_code_sc4(struct ieee80211_hw *hw,
 		return -EINVAL;
 	}
 
-	*fw_region_code = le32_to_cpu(pcmd->fw_region_code);
+	if (pcmd->status)
+		*fw_region_code = (pcmd->status == 1) ? 0 : pcmd->status;
+	else
+		*fw_region_code = le32_to_cpu(pcmd->fw_region_code);
 
 	mutex_unlock(&priv->fwcmd_mutex);
 
