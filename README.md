@@ -1,4 +1,20 @@
 # Ubuntu WRT
+Ubuntu distribution based on 16.04 Xenial for Linksys WRT3200ACM router.
+Currently testing 18.01-beta.  
+[Rootfs](https://wrt.hinrichs.io/downloads/18.01-beta/ubuntu-wrt_18.01_xenial-beta.tar.bz2)  
+[Firmware](https://wrt.hinrichs.io/downloads/18.01-beta/wrt3200acm_4.14.13-wrt0.bin)  
+
+Some big changes on the way.  
+18.01-beta Changelog:
+* Reverted back to 16.04 Xenial for LTS.  
+* Implemented DSA switch.  
+* Fixed interface configurations. Now booting takes only seconds.  
+* Back to mainline kernel. Current version is 4.14.13.  
+* Implemented ValCher1961's [region free patch](https://github.com/ValCher1961/McDebian_WRT3200ACM), so you now can set your region properly.  
+
+If you find any issues with this release, please open an issue.  
+
+# [Not Updated]
 Ubuntu distribution based on 17.04 Zesty for Linksys WRT3200ACM router.  
 Current version is UbuntuWRT 17.10.1.  
 

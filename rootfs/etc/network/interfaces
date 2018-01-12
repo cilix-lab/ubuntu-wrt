@@ -4,23 +4,24 @@ source-directory /etc/network/interfaces.d
 
 auto lo
 iface lo inet loopback
-	
-allow-hotplug wlan0
-iface wlan0 inet manual
-	
-allow-hotplug wlan1
-iface wlan1 inet manual
-	
-allow-hotplug eth0
-iface eth0 inet manual
 
-allow-hotplug eth1
-iface eth1 inet dhcp
+auto eth1
+iface eth1 inet manual
+
+allow-hotplug wlp1s0
+iface wlp1s0 inet manual
+
+allow-hotplug wlp2s0
+iface wlp2s0 inet manual
+
+allow-hotplug wan
+iface wan inet dhcp
 
 auto br0
 iface br0 inet static
-	bridge_ports eth0 wlan0 wlan1
+	bridge_ports lan1 lan2 lan3 lan4 wlp1s0 wlp2s0
 	address 192.168.1.1
 	netmask 255.255.255.0
 	network 192.168.1.0
 	broadcast 192.168.1.255
+

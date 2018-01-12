@@ -1,7 +1,6 @@
 #!/bin/sh
-# set eth1 MAC
 
-if [ "$IFACE" = "eth1" ]; then
+if [ "$IFACE" = "wan" ]; then
 	iptables-restore < /etc/iptables.rules
 	ip6tables-restore < /etc/ip6tables.rules
 fi
