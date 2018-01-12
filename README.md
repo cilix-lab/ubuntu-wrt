@@ -1,8 +1,10 @@
 # Ubuntu WRT
 Ubuntu distribution based on 16.04 Xenial for Linksys WRT3200ACM router.
 Currently testing 18.01-beta.  
-[Rootfs](https://wrt.hinrichs.io/downloads/18.01-beta/ubuntu-wrt_18.01_xenial-beta.tar.bz2)  
-[Firmware](https://wrt.hinrichs.io/downloads/18.01-beta/wrt3200acm_4.14.13-wrt0.bin)  
+[Rootfs](http://www.mediafire.com/file/emnlawrp0q31u3x/ubuntu-wrt_18.01_xenial-beta.tar.bz2)  
+[Rootfs (mirror)](https://wrt.hinrichs.io/downloads/18.01-beta/ubuntu-wrt_18.01_xenial-beta.tar.bz2)  
+[Firmware](http://www.mediafire.com/file/fqciggtgc7mbr19/wrt3200acm_4.14.13-wrt0.bin)  
+[Firmware (mirror)](https://wrt.hinrichs.io/downloads/18.01-beta/wrt3200acm_4.14.13-wrt0.bin)  
 
 Some big changes on the way.  
 18.01-beta Changelog:
