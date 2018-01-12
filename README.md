@@ -10,7 +10,7 @@ Some big changes on the way.
 * Implemented DSA switch.  
 * Fixed interface configurations. Now booting takes only seconds.  
 * Back to mainline kernel. Current version is 4.14.13.  
-* Implemented ValCher1961's [region free patch](https://github.com/ValCher1961/McDebian_WRT3200ACM), so you now can set your region properly.  
+* Implemented ValCher1961's [region free patch](https://github.com/ValCher1961/McDebian_WRT3200ACM), so you can now set your region properly.  
 
 If you find any issues with this release, please open an issue.  
 
