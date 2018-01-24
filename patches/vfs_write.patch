@@ -1,0 +1,25 @@
+*** a/drivers/net/wireless/marvell/mwlwifi/debugfs.c	2018-01-18 12:05:37.306095512 -0300
+--- b/drivers/net/wireless/marvell/mwlwifi/debugfs.c	2018-01-18 12:05:23.566545426 -0300
+***************
+*** 125,134 ****
+  			}
+  			data_p = buf + j;
+  			data_p += sprintf(data_p, "\n");
+! 			vfs_write(filp_core, buf, strlen(buf),
+  				  &filp_core->f_pos);
+  		} else
+! 			vfs_write(filp_core, valbuf, length, &filp_core->f_pos);
+  
+  		filp_close(filp_core, current->files);
+  	}
+--- 125,134 ----
+  			}
+  			data_p = buf + j;
+  			data_p += sprintf(data_p, "\n");
+! 			kernel_write(filp_core, buf, strlen(buf),
+  				  &filp_core->f_pos);
+  		} else
+! 			kernel_write(filp_core, valbuf, length, &filp_core->f_pos);
+  
+  		filp_close(filp_core, current->files);
+  	}

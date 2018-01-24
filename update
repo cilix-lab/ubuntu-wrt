@@ -20,62 +20,32 @@ ask() { local q="$1"; local d=${2:-"n"}
 }
 
 workdir=$(dirname $(realpath `dirname $0`)); err=0
+distro="linux-stable"
 echo "This script will pull sources from git and update Ubuntu-WRT."
 echo "Sources will be pulled within the parent directory: $workdir"
 if ! ask "Do you wish to continue?" "y"; then exit 0; fi
 
-echo -e "\nPlease, select the distribution you wish to update:"
-echo "1) all"
-
-s=1; opts=""; for d in $(realpath `dirname $0`)/ubuntu-*; do
-  distro=$(basename $d)
-  s=$((s+1))
-  echo "$s) $distro"
-  opts="$opts;$s,$distro"
-done; unset distro; unset s
-
-read -p "Distribution [1]: " d; [ -z $d ] && d="1"
-
-t=0; while true; do
-
-  if [ $d -eq 1 ]; then
-    distro="all"
-    break
-  fi
-
-  for i in $(echo $opts | sed "s/;/ /g"); do
-    o=`echo $i | cut -d ',' -f1`
-    if [ $d = $o ]; then
-      distro=`echo $i | cut -d ',' -f2`
-      break
-    fi
-  done
-
-  if [ -z "$distro" ]; then
-    t=$((t+1)); [ $t -gt 3 ] && echo "Too many times. Quitting." && exit 1
-    read -p "$d is not a valid option. Try again: " d
-    continue
-  fi
-
-  break
-
-done; unset t
-echo
-
-update() { local distro="$1"
 # mwlwifi
 cd "$workdir"; echo "Updating mwlwifi... "
 [ ! -d ./mwlwifi ] && git clone https://github.com/kaloz/mwlwifi.git
 if cd mwlwifi; then
   git pull; cd ..
-  if rm -rf ubuntu-wrt/$distro/drivers/mwlwifi; then
-    cp -r mwlwifi ubuntu-wrt/$distro/drivers/
-    rm -rf ubuntu-wrt/$distro/drivers/mwlwifi/.git
-    mv -f ubuntu-wrt/$distro/drivers/mwlwifi/Makefile.kernel ubuntu-wrt/$distro/drivers/mwlwifi/Makefile
-    # update firmware
-    rm -rf ubuntu-wrt/$distro/firmware/mwlwifi
-    mv ubuntu-wrt/$distro/drivers/mwlwifi/bin/firmware ubuntu-wrt/$distro/firmware/mwlwifi
-    rm -rf ubuntu-wrt/$distro/drivers/mwlwifi/bin
+  if rm -rf ubuntu-wrt/$distro/drivers/net/wireless/marvell/mwlwifi; then
+    cp -r mwlwifi ubuntu-wrt/$distro/drivers/net/wireless/marvell/
+    rm -rf ubuntu-wrt/$distro/drivers/net/wireless/marvell/mwlwifi/.git
+    mv -f ubuntu-wrt/$distro/drivers/net/wireless/marvell/mwlwifi/Makefile.kernel ubuntu-wrt/$distro/drivers/net/wireless/marvell/mwlwifi/Makefile
+    rm -rf ubuntu-wrt/$distro/drivers/net/wireless/marvell/mwlwifi/bin
+    cd ubuntu-wrt/$distro
+    # Apply vfs_write -> kernel_write patch
+    if ask "Do you wish to apply the vfs_write patch for mwlwifi and kernel >= 4.14.14?" "y"; then
+      echo "Applying vfs_write -> kernel_write patch to mwlwifi... "
+      patch -p1 < ../patches/vfs_write.patch
+    fi
+    # Apply regfree patches
+    if ask "Do you wish to apply regfree patch for mwlwifi?" "y"; then
+      echo "Applying regfree patch to mwlwifi... "
+      wget -q https://raw.githubusercontent.com/ValCher1961/McDebian_WRT3200ACM/master/kernel-4.14.X/patch.regfree -O - | cat - | patch -p1
+    fi
   else
     echo "mwlwifi driver missing. Maybe not right branch?"
   fi
@@ -84,16 +54,11 @@ else
   err=$((err+1))
 fi
 
-# mwifiex
+# mwifiex firmware
 cd "$workdir"; echo "Updating mwifiex firmware... "
 [ ! -d ./linux-firmware ] && git clone git://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git
 if cd linux-firmware; then
   git pull; cd ..
-  if rm -f ubuntu-wrt/$distro/firmware/mrvl/*; then
-    cp -f linux-firmware/mrvl/sd8887_uapsta.bin ubuntu-wrt/$distro/firmware/mrvl/sd8887_uapsta.bin
-  else
-    echo "mwifiex firmware missing. Maybe not right branch?"
-  fi
 else
   echo "Failed to clone linux-firmware."
   err=$((err+10))
@@ -129,18 +94,10 @@ if [ $err = 0 ]; then
     echo "$workdir/$distro does not exist."
   fi
   echo
+  echo "Starting from kernel 4.14, firmware is no longer included in tree and it is not installed by make modules_install anymore."
+  echo "You should install manually from linux-firmware repository (mwifiex: linux-firmware/mrvl/sd8887_uapsta.bin) and mwlwifi (mwlwifi/bin/firmware/*.bin)."
+  echo
 else
   echo "There have been errors during update."
   exit $err
-fi
-}
-
-if [ "$distro" = "all" ]; then
-  for d in $(realpath `dirname $0`)/ubuntu-*; do
-    distro=$(basename $d)
-    echo "Updating $distro... "
-    update "$distro"
-  done
-else
-  update "$distro"
 fi
