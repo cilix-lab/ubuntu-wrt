@@ -37,9 +37,9 @@ if cd mwlwifi; then
     rm -rf ubuntu-wrt/$distro/drivers/net/wireless/marvell/mwlwifi/bin
     cd ubuntu-wrt/$distro
     # Apply vfs_write -> kernel_write patch
-    if ask "Do you wish to apply the vfs_write patch for mwlwifi and kernel >= 4.14.14?" "y"; then
+    if ask "Do you wish to apply the vfs_write patch for mwlwifi and kernel >= 4.14?" "y"; then
       echo "Applying vfs_write -> kernel_write patch to mwlwifi... "
-      patch -p1 < ../patches/vfs_write.patch
+      sed -i 's/vfs_write/kernel_write/g' drivers/net/wireless/marvell/mwlwifi/debugfs.c
     fi
     # Apply regfree patches
     if ask "Do you wish to apply regfree patch for mwlwifi?" "y"; then
