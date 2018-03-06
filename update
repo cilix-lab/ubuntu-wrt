@@ -62,7 +62,7 @@ if cd mwlwifi; then
       wget -q "$f" -O - | cat - | patch -p1
     done &&\
       rm -rf firmware
-    if ask "Do you wish to apply ValCher's patches for vfs_write and regfree?" "y"; then
+    if ask "Do you wish to apply ValCher's regfree patch?" "y"; then
       echo "Applying patches to mwlwifi... "
       for f in 'https://raw.githubusercontent.com/ValCher1961/McDebian_WRT3200ACM/master/kernel-4.14.X/patch.rango.dts' 'https://raw.githubusercontent.com/ValCher1961/McDebian_WRT3200ACM/master/kernel-4.14.X/patch.regfree'; do
         wget -q "$f" -O - | cat - | patch -p1
