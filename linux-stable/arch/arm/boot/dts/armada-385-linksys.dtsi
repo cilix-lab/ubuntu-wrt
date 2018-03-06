@@ -66,6 +66,7 @@
 	usb3_1_phy: usb3_1-phy {
 		compatible = "usb-nop-xceiv";
 		vcc-supply = <&usb3_1_vbus>;
+		#phy-cells = <0>;
 	};
 
 	usb3_1_vbus: usb3_1-vbus {
@@ -174,6 +175,8 @@
 	/* 128MiB or 256MiB */
 	status = "okay";
 	num-cs = <1>;
+	nand-ecc-strength = <4>;
+	nand-ecc-step-size = <512>;
 	marvell,nand-keep-config;
 	marvell,nand-enable-arbiter;
 	nand-on-flash-bbt;

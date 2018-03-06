@@ -35,16 +35,38 @@ if cd mwlwifi; then
     rm -rf ubuntu-wrt/$distro/drivers/net/wireless/marvell/mwlwifi/.git
     mv -f ubuntu-wrt/$distro/drivers/net/wireless/marvell/mwlwifi/Makefile.kernel ubuntu-wrt/$distro/drivers/net/wireless/marvell/mwlwifi/Makefile
     rm -rf ubuntu-wrt/$distro/drivers/net/wireless/marvell/mwlwifi/bin
-    cd ubuntu-wrt/$distro
-    # Apply vfs_write -> kernel_write patch
-    if ask "Do you wish to apply the vfs_write patch for mwlwifi and kernel >= 4.14?" "y"; then
-      echo "Applying vfs_write -> kernel_write patch to mwlwifi... "
-      sed -i 's/vfs_write/kernel_write/g' drivers/net/wireless/marvell/mwlwifi/debugfs.c
+    if [ -d "$workdir/$distro" ]; then
+      distro_ok=true
+      cd "$workdir/$distro"
+      if ! git branch | grep -q '* master'; then
+        git checkout master ||\
+          (echo "Changes not commited on $distro. Please commit changes and switch to master branch."; exit 1)
+      fi
+      if git status | grep 'Changes not staged for commit'; then
+        echo "Changes not commited on $distro. Please commit changes and switch to master branch."
+        exit 1
+      fi
+      cd "$workdir/ubuntu-wrt/$distro"
+      [ ! -d "firmware" ] && mkdir firmware
+      for f in 'drivers/net/wireless/marvell/Kconfig' 'drivers/net/wireless/marvell/Makefile' 'firmware/Makefile' 'arch/arm/boot/dts/armada-385-linksys.dtsi' 'arch/arm/boot/dts/armada-385-linksys-rango.dts'; do
+        [ -f "$workdir/$distro/$f" ] &&\
+          cp -f "$workdir/$distro/$f" "$f" ||\
+          echo "File $f is missing... "
+      done
+    else
+      echo "$distro folder missing. Could not fetch necessary files!"
+      exit 1
     fi
-    # Apply regfree patches
-    if ask "Do you wish to apply regfree patch for mwlwifi?" "y"; then
-      echo "Applying regfree patch to mwlwifi... "
-      wget -q https://raw.githubusercontent.com/ValCher1961/McDebian_WRT3200ACM/master/kernel-4.14.X/patch.regfree -O - | cat - | patch -p1
+    # Apply ValCher's patches
+    for f in 'https://raw.githubusercontent.com/ValCher1961/McDebian_WRT3200ACM/master/kernel-4.14.X/patch.mvdrv' 'https://raw.githubusercontent.com/ValCher1961/McDebian_WRT3200ACM/master/kernel-4.14.X/patch.nand-ecc'; do
+      wget -q "$f" -O - | cat - | patch -p1
+    done &&\
+      rm -rf firmware
+    if ask "Do you wish to apply ValCher's patches for vfs_write and regfree?" "y"; then
+      echo "Applying patches to mwlwifi... "
+      for f in 'https://raw.githubusercontent.com/ValCher1961/McDebian_WRT3200ACM/master/kernel-4.14.X/patch.rango.dts' 'https://raw.githubusercontent.com/ValCher1961/McDebian_WRT3200ACM/master/kernel-4.14.X/patch.regfree'; do
+        wget -q "$f" -O - | cat - | patch -p1
+      done
     fi
   else
     echo "mwlwifi driver missing. Maybe not right branch?"

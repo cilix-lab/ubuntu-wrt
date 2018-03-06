@@ -27,7 +27,7 @@
 #include <net/mac80211.h>
 
 #define PCIE_DRV_NAME    KBUILD_MODNAME
-#define PCIE_DRV_VERSION "10.3.4.0-20180118"
+#define PCIE_DRV_VERSION "10.3.4.0-20180305"
 
 #define PCIE_MIN_BYTES_HEADROOM   64
 #define PCIE_NUM_OF_DESC_DATA     SYSADPT_TOTAL_TX_QUEUES
@@ -541,7 +541,8 @@ struct pcie_priv {
 	/* for tx descriptor data  */
 	spinlock_t tx_desc_lock ____cacheline_aligned_in_smp;
 	struct pcie_desc_data desc_data[PCIE_NUM_OF_DESC_DATA];
-	struct sk_buff_head delay_q;
+	int delay_q_idx;
+	struct sk_buff *delay_q[PCIE_DELAY_FREE_Q_LIMIT];
 	/* number of descriptors owned by fw at any one time */
 	int fw_desc_cnt[PCIE_NUM_OF_DESC_DATA];
 
@@ -608,6 +609,18 @@ struct acnt_rx_s { /* Accounting Record for Rx PPDU */
 	__le16 air_time;      /* Air Time used by PPDU (no CSMA overhead)     */
 	__le16 rate;          /* Rate Code for receiving data                 */
 	struct rx_info rx_info;/* Receive parameters from 1st valid MPDU/AMPDU*/
+} __packed;
+
+struct acnt_ra_s { /* Accounting Record w/ rateinfo PER */
+	__le16 code;          /* Unique code for each type                    */
+	u8 len;               /* Length in DWORDS, including header           */
+	u8 per;               /* PER for this rateinfo                        */
+	__le32 tsf;           /* Timestamp for Entry (when len>1)             */
+	__le16 stn_id;        /* sta index this rateinfo is tied to           */
+	u8 type;              /* SU:0 or MU:1                                 */
+	u8 rate_tbl_index;    /* ratetbl index                                */
+	__le32 rate_info;     /* rateinfo for this ratetbl index              */
+	__le32 tx_attempt_cnt;/* Total tx pkt during rate adapt interval      */
 } __packed;
 
 struct acnt_ba_s { /* Accounting Record w/ rateinfo PER */
