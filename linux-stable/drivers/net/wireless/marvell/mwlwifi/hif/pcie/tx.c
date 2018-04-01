@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2017, Marvell International Ltd.
+ * Copyright (C) 2006-2018, Marvell International Ltd.
  *
  * This software file (the "File") is distributed by Marvell International
  * Ltd. under the terms of the GNU General Public License Version 2, June 1991
@@ -560,7 +560,7 @@ void pcie_tx_deinit(struct ieee80211_hw *hw)
 	int i;
 
 	for (i = 0; i < PCIE_DELAY_FREE_Q_LIMIT; i++)
-		if (!pcie_priv->delay_q[i])
+		if (pcie_priv->delay_q[i])
 			dev_kfree_skb_any(pcie_priv->delay_q[i]);
 
 	pcie_tx_ring_cleanup(priv);

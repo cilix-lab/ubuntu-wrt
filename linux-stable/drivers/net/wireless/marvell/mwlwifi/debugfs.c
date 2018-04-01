@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2017, Marvell International Ltd.
+ * Copyright (C) 2006-2018, Marvell International Ltd.
  *
  * This software file (the "File") is distributed by Marvell International
  * Ltd. under the terms of the GNU General Public License Version 2, June 1991
@@ -313,11 +313,11 @@ static void core_dump_file(u8 *valbuf, u32 length, u32 region, u32 address,
 			}
 			data_p = buf + j;
 			data_p += sprintf(data_p, "\n");
-			kernel_write(filp_core, buf, strlen(buf),
-				     &filp_core->f_pos);
+			__kernel_write(filp_core, buf, strlen(buf),
+				       &filp_core->f_pos);
 		} else
-			kernel_write(filp_core, valbuf, length,
-				     &filp_core->f_pos);
+			__kernel_write(filp_core, valbuf, length,
+				       &filp_core->f_pos);
 
 		filp_close(filp_core, current->files);
 	}
@@ -1083,7 +1083,7 @@ static ssize_t mwl_debugfs_ratetable_read(struct file *file, char __user *ubuf,
 	struct ieee80211_sta *sta;
 	u8 addr[ETH_ALEN];
 	int table_size = (sizeof(__le32) * 2 * SYSADPT_MAX_RATE_ADAPT_RATES);
-	u8 *rate_table;
+	u8 *rate_table, *rate_idx;
 	u32 rate_info;
 	u8 fmt, stbc, bw, sgi, mcs, preamble_gf, power_id, ldpc, bf, ant;
 	int idx, rate, nss;
@@ -1127,7 +1127,8 @@ static ssize_t mwl_debugfs_ratetable_read(struct file *file, char __user *ubuf,
 		"Num", "Fmt", "STBC", "BW", "SGI", "Nss", "RateId",
 		"GF/Pre", "PId", "LDPC", "BF", "TxAnt", "Rate");
 	idx = 0;
-	rate_info = le32_to_cpu(*(__le32 *)rate_table);
+	rate_idx = rate_table;
+	rate_info = le32_to_cpu(*(__le32 *)rate_idx);
 	while (rate_info) {
 		fmt = rate_info & MWL_TX_RATE_FORMAT_MASK;
 		stbc = (rate_info & MWL_TX_RATE_STBC_MASK) >>
@@ -1174,8 +1175,8 @@ static ssize_t mwl_debugfs_ratetable_read(struct file *file, char __user *ubuf,
 			utils_get_phy_rate(fmt, bw, sgi, mcs));
 
 		idx++;
-		rate_table += (2 * sizeof(__le32));
-		rate_info = le32_to_cpu(*(__le32 *)rate_table);
+		rate_idx += (2 * sizeof(__le32));
+		rate_info = le32_to_cpu(*(__le32 *)rate_idx);
 	}
 	len += scnprintf(p + len, size - len, "\n");
 
@@ -1393,8 +1394,8 @@ static ssize_t mwl_debugfs_ba_hist_read(struct file *file, char __user *ubuf,
 
 			/* Buffer is full. Write to file and reset buf */
 			if ((strlen(buff) + 36) >= 500) {
-				kernel_write(filp_bahisto, buff, strlen(buff),
-					     &filp_bahisto->f_pos);
+				__kernel_write(filp_bahisto, buff, strlen(buff),
+					       &filp_bahisto->f_pos);
 				mdelay(2);
 				memset(buff, 0, sizeof(buff));
 				data_p = buff;
@@ -1418,8 +1419,8 @@ static ssize_t mwl_debugfs_ba_hist_read(struct file *file, char __user *ubuf,
 				data_p += sprintf(data_p, "%8d\n", nobaflag);
 		}
 
-		kernel_write(filp_bahisto, buff, strlen(buff),
-			     &filp_bahisto->f_pos);
+		__kernel_write(filp_bahisto, buff, strlen(buff),
+			       &filp_bahisto->f_pos);
 		len += scnprintf(p + len, size - len,
 				 "hole: %d, expect: %d, bmap0: %d, noba: %d\n",
 				 baholecnt, baexpcnt, bmap0cnt, nobacnt);
