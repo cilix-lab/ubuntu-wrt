@@ -23,6 +23,7 @@ workdir=$(dirname $(realpath `dirname $0`)); err=0
 distro="linux-stable"
 current_tag="v4.14.32"
 echo "This script will pull sources from git and update Ubuntu-WRT."
+echo "The sources of $distro will be needed. You should clone them to $workdir folder. Current tag: $current_tag."
 echo "Sources will be pulled within the parent directory: $workdir"
 if ! ask "Do you wish to continue?" "y"; then exit 0; fi
 
