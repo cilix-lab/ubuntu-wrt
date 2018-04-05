@@ -21,6 +21,7 @@ ask() { local q="$1"; local d=${2:-"n"}
 
 workdir=$(dirname $(realpath `dirname $0`)); err=0
 distro="linux-stable"
+current_tag="v4.14.32"
 echo "This script will pull sources from git and update Ubuntu-WRT."
 echo "Sources will be pulled within the parent directory: $workdir"
 if ! ask "Do you wish to continue?" "y"; then exit 0; fi
@@ -38,13 +39,9 @@ if cd mwlwifi; then
     if [ -d "$workdir/$distro" ]; then
       distro_ok=true
       cd "$workdir/$distro"
-      if ! git branch | grep -q '* master'; then
-        git checkout master ||\
-          (echo "Changes not commited on $distro. Please commit changes and switch to master branch."; exit 1)
-      fi
-      if git status | grep 'Changes not staged for commit'; then
-        echo "Changes not commited on $distro. Please commit changes and switch to master branch."
-        exit 1
+      if [ "$current_tag" != "$(git describe --tags)" ]; then
+        git checkout tags/$current_tag || \
+          (echo "Changes not commited on $distro. Please commit changes."; exit 1)
       fi
       cd "$workdir/ubuntu-wrt/$distro"
       [ ! -d "firmware" ] && mkdir firmware
