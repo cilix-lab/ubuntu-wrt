@@ -2,7 +2,7 @@
 *filter
 :INPUT DROP [0:0]
 :FORWARD ACCEPT [0:0]
-:OUTPUT ACCEPT [4:296]
+:OUTPUT ACCEPT [0:0]
 -A INPUT -i lo -j ACCEPT
 -A INPUT -i br0 -j ACCEPT
 -A INPUT -i wan -m state --state RELATED,ESTABLISHED -j ACCEPT
