@@ -2,11 +2,17 @@
 
 setup_addc() {
 
-# Before we start, make sure we can fetch config files from server
-wget -q -O /tmp/samba-ddns-updates.tar.xz https://wrt.hinrichs.io/downloads/18.04/samba-ddns-updates.tar.xz || return 1
+# Before we start, make sure we can fetch config files
 
-# Stop conflicting services
-/bin/systemctl stop dnsmasq
+# /etc/dhcp folder
+mkdir -p /tmp/samba-ddns-updates/dhcp
+for f in "dhcpd-update-samba-dns.conf" "dhcpd-update-samba-dns.sh" "dhcpd.conf"; do
+  wget -O "/tmp/samba-ddns-updates/dhcp/$f" "https://github.com/cilix-lab/ubuntu-wrt/raw/master/samba-ddns-updates/etc/dhcp/$f" || return 1
+done
+
+# /usr/bin folder
+mkdir -p /tmp/samba-ddns-updates/bin
+wget -O "/tmp/samba-ddns-updates/bin/samba-dnsupdate.sh" "https://github.com/cilix-lab/ubuntu-wrt/raw/master/samba-ddns-updates/usr/bin/samba-dnsupdate.sh" || return 2
 
 # Install packages
 apt-get install -y isc-dhcp-server
@@ -22,13 +28,15 @@ apt-get install -y acl attr build-essential docbook-xsl gdb krb5-user ldb-tools 
 /bin/systemctl disable samba-ad-dc
 /bin/systemctl disable winbind
 
+# Stop conflicting services
+/bin/systemctl stop dnsmasq
+
 # Backup default config file
 cp /etc/samba/smb.conf /etc/samba/smb.conf-dpkg
 cp /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf-dpkg
 
 # Get IP and Domain Provision
-echo "You should use 127.0.2.1 as DNS forwarder."
-echo "If you don't, it will be changed later in the process."
+echo "INFO: If you have any doubts, just use default value."
 BR0_IP=`ip addr show br0 | grep 'inet ' | awk '{print $2}' | cut -d '/' -f1`
 /usr/bin/samba-tool domain provision --use-rfc2307 --use-ntvfs --dns-backend="SAMBA_INTERNAL" --server-role="dc" --host-ip="$BR0_IP" --interactive
 
@@ -51,8 +59,12 @@ DOMAIN=`cat /etc/samba/smb.conf | tr -d ' ' | grep 'realm=.*' | cut -d '=' -f2`
 /bin/chown dhcpd:dhcpd /etc/dhcp/dhcpduser.keytab
 /bin/chmod 400 /etc/dhcp/dhcpduser.keytab
 
-# Now let's unpack the default DDNS config and script
-tar -xJvf /tmp/samba_config.tar.xz -C /
+# Now, let's put downloaded files in place and set permissions
+for f in "dhcpd-update-samba-dns.conf" "dhcpd-update-samba-dns.sh" "dhcpd.conf"; do
+  cp -f "/tmp/samba-ddns-updates/dhcp/$f" "/etc/dhcp/"
+done
+cp "/tmp/samba-ddns-updates/bin/samba-dnsupdate.sh" "/usr/bin/"
+chmod +x /etc/dhcp/dhcpd-update-samba-dns.sh /usr/bin/samba-dnsupdate.sh
 
 # OK, if we've made it so far, let's start Samba4 and create the reverse zone
 POS=0; unset REVERSE
@@ -86,6 +98,9 @@ return 0
 }
 
 clean_up() {
+
+# Remove downloaded folder
+rm -r /tmp/samba-ddns-updates
 
 # Enable all
 /bin/systemctl enable isc-dhcp-server
