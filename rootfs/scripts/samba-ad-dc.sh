@@ -1,14 +1,25 @@
-#!/bin/sh
+#!/bin/bash
 
 . $(dirname $0)/functions.sh
+
+pre_check() {
+
+if [ -z "$(hostname -d)" ]; then
+  echo "No FQDN is setup. Please, provide a FQDN before setting up Samba AD DC."
+  echo "The files you might want to look at are: "
+  echo "/etc/dhcp/dhclient.conf"
+  echo "/etc/network/interfaces"
+  echo "/etc/resolv.conf"
+  return 1
+fi
+
+}
 
 setup_addc() {
 
 # Before we start, make sure we can fetch dhcp-dyndns.sh
-
-# /usr/bin folder
 [ ! -d /usr/local/bin ] mkdir -p /usr/local/bin
-wget -O "/usr/local/bin/dhcp-dyndns.sh" "https://github.com/cilix-lab/ubuntu-wrt/raw/master/samba-ddns-updates/usr/local/bin/dhcp-dyndns.sh" || return 1
+wget -O "/usr/local/bin/dhcp-dyndns.sh" "https://github.com/cilix-lab/ubuntu-wrt/raw/master/samba-ddns-updates/usr/local/bin/dhcp-dyndns.sh" || return 2
 chmod +x /usr/local/bin/dhcp-dyndns.sh
 
 # Install packages
@@ -76,7 +87,11 @@ samba-tool user setexpiry Administrator --noexpiry
 
 # Now let's setup DHCP DDNS
 # Create DHCPd's user
-samba-tool user create dhcpduser --description="Unprivileged user for TSIG-GSSAPI DNS updates via ISC DHCP server" --random-password
+DHCPDPASS=`< /dev/urandom tr -dc A-Za-z0-9 | head -c${1:-32}`
+echo "$DHCPDPASS" > /etc/dhcp/dhcpduser.pass
+chown dhcpd:dhcpd /etc/dhcp/dhcpduser.pass
+chmod 400 /etc/dhcp/dhcpduser.pass
+samba-tool user create dhcpduser "$DHCPDPASS" --description="Unprivileged user for TSIG-GSSAPI DNS updates via ISC DHCP server"
 samba-tool user setexpiry dhcpduser --noexpiry
 samba-tool group addmembers DnsAdmins dhcpduser
 samba-tool domain exportkeytab --principal=dhcpduser@"$REALM" /etc/dhcp/dhcpduser.keytab
@@ -161,7 +176,7 @@ fi
 error_exit() {
 
 echo "Something wen't wrong."
-exit 1
+exit $1
 
 }
 
@@ -170,7 +185,7 @@ echo "dnsmasq will be removed in favour of Samba4 DNS and ISC-DHCP-Server."
 echo "If you have a custom setup, backup before proceding."
 echo "The setup will be interactive."
 if ask "Do you wish to continue?"; then
-  setup_addc && remove_dnsmasq && clean_up || error_exit
+  pre_check && setup_addc && remove_dnsmasq && clean_up || error_exit $?
 fi
 
 exit 0

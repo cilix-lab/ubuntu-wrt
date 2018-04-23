@@ -105,48 +105,32 @@ if [ "${name}" = "" ]; then
 fi
 
 # Set PTR address
-ptr=$(echo ${ip} | awk -F '.' '{print $4"."$3"."$2"."$1".in-addr.arpa"}')
+ptr=$(echo ${ip} | awk -F '.' '{print $3"."$2"."$1".in-addr.arpa"}')
 
 ## nsupdate ##
 case "${action}" in
 add)
     _KERBEROS
 
-nsupdate -g ${NSUPDFLAGS} << UPDATE
-server 127.0.0.1
-realm ${REALM}
-update delete ${name}.${domain} 3600 A
-update add ${name}.${domain} 3600 A ${ip}
-send
-UPDATE
+# Add forward record
+samba-tool dns delete 127.0.0.1 ${domain} ${name} A ${ip} -Udhcpduser --password=`cat /etc/dhcp/dhcpduser.pass` > /dev/null 2>&1
+samba-tool dns add 127.0.0.1 ${domain} ${name} A ${ip} -Udhcpduser --password=`cat /etc/dhcp/dhcpduser.pass`
 result1=$?
 
-nsupdate -g ${NSUPDFLAGS} << UPDATE
-server 127.0.0.1
-realm ${REALM}
-update delete ${ptr} 3600 PTR
-update add ${ptr} 3600 PTR ${name}.${domain}
-send
-UPDATE
+# Add reverse record
+samba-tool dns delete 127.0.0.1 ${ptr} $(echo ${ip} | cut -d '.' -f4) PTR ${name}.${domain} -Udhcpduser --password=`cat /etc/dhcp/dhcpduser.pass` > /dev/null 2>&1
+samba-tool dns add 127.0.0.1 ${ptr} $(echo ${ip} | cut -d '.' -f4) PTR ${name}.${domain} -Udhcpduser --password=`cat /etc/dhcp/dhcpduser.pass`
 result2=$?
 ;;
 delete)
      _KERBEROS
 
-nsupdate -g ${NSUPDFLAGS} << UPDATE
-server 127.0.0.1
-realm ${REALM}
-update delete ${name}.${domain} 3600 A
-send
-UPDATE
+# Delete forward record
+samba-tool dns delete 127.0.0.1 ${domain} ${name} A ${ip} -Udhcpduser --password=`cat /etc/dhcp/dhcpduser.pass`
 result1=$?
 
-nsupdate -g ${NSUPDFLAGS} << UPDATE
-server 127.0.0.1
-realm ${REALM}
-update delete ${ptr} 3600 PTR
-send
-UPDATE
+# Delete reverse record
+samba-tool dns delete 127.0.0.1 ${ptr} $(echo ${ip} | cut -d '.' -f4) PTR ${name}.${domain} -Udhcpduser --password=`cat /etc/dhcp/dhcpduser.pass` > /dev/null 2>&1
 result2=$?
 ;;
 *)
