@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. $(dirname $0)/functions.sh
+
 setup_addc() {
 
 # Before we start, make sure we can fetch config files
