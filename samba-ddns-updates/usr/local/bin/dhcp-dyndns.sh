@@ -110,7 +110,7 @@ ptr=$(echo ${ip} | awk -F '.' '{print $3"."$2"."$1".in-addr.arpa"}')
 ## nsupdate ##
 case "${action}" in
 add)
-    _KERBEROS
+    #_KERBEROS
 
 # Add forward record
 samba-tool dns delete 127.0.0.1 ${domain} ${name} A ${ip} -Udhcpduser --password=`cat /etc/dhcp/dhcpduser.pass` > /dev/null 2>&1
@@ -123,7 +123,7 @@ samba-tool dns add 127.0.0.1 ${ptr} $(echo ${ip} | cut -d '.' -f4) PTR ${name}.$
 result2=$?
 ;;
 delete)
-     _KERBEROS
+     #_KERBEROS
 
 # Delete forward record
 samba-tool dns delete 127.0.0.1 ${domain} ${name} A ${ip} -Udhcpduser --password=`cat /etc/dhcp/dhcpduser.pass`
