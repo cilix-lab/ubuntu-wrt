@@ -11,7 +11,7 @@
 #
 # By default this script does nothing.
 
-replace_default() {
+default_rc() {
 cat <<EOF > /etc/rc.local
 #!/bin/sh -e
 #
@@ -32,12 +32,15 @@ EOF
 
 # generate ssh keys and enable openssh
 dpkg-reconfigure -f noninteractive openssh-server
-ln -s /lib/systemd/system/ssh.service /etc/systemd/system/multi-user.target.wants/ssh.service 
+ln -s /lib/systemd/system/ssh.service /etc/systemd/system/multi-user.target.wants/ssh.service
 ln -s /lib/systemd/system/ssh.service /etc/systemd/system/sshd.service
-# set recursive scripts perms
+
+# set scripts perms
 chmod -R 755 /scripts
+
 # default rc.local
-replace_default
+default_rc
+
 reboot
 
 exit 0

@@ -6,10 +6,6 @@ pre_check() {
 
 if [ -z "$(hostname -d)" ]; then
   echo "No FQDN is setup. Please, provide a FQDN before setting up Samba AD DC."
-  echo "The files you might want to look at are: "
-  echo "/etc/dhcp/dhclient.conf"
-  echo "/etc/network/interfaces"
-  echo "/etc/resolv.conf"
   return 1
 fi
 
@@ -44,16 +40,24 @@ cp /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf-dpkg
 systemctl start samba-ad-dc
 
 # Get IP and Domain Provision
-echo "INFO: If you have any doubts, just use default value."
-BR0_IP=`ip addr show br0 | grep 'inet ' | awk '{print $2}' | cut -d '/' -f1`
-samba-tool domain provision --use-rfc2307 --dns-backend="SAMBA_INTERNAL" --server-role="dc" --host-ip="$BR0_IP" --interactive || return 3
+#echo "INFO: If you have any doubts, just use default value."
+#BR0_IP=`ip addr show br0 | grep 'inet ' | awk '{print $2}' | cut -d '/' -f1`
+#samba-tool domain provision --use-rfc2307 --dns-backend="SAMBA_INTERNAL" --server-role="dc" --host-ip="$BR0_IP" --interactive || return 3
 
 BR0_IP=`ip addr show br0 | grep 'inet ' | awk '{print $2}' | cut -d '/' -f1`
+HOSTNAME=`hostname`
 REALM=`hostname -d`
 REALM=${REALM^^}
 DOMAIN=`echo $REALM | cut -d '.' -f1`
 PASSWORD=`< /dev/urandom tr -dc A-Za-z0-9 | head -c${1:-32}`
-samba-tool domain provision --use-rfc2307 --dns-backend="SAMBA_INTERNAL" --server-role="dc" --domain="$DOMAIN" --realm="$REALM" --host-name=`hostname` --host-ip="$BR0_IP" --adminpass="$PASSWORD"
+cat <<EOF
+INFO: If you have any doubts, just use default value.
+IP Address: $BR0_IP
+Hostname: $HOSTNAME
+Realm: $REALM
+Domain: $DOMAIN
+EOF
+samba-tool domain provision --use-rfc2307 --dns-backend="SAMBA_INTERNAL" --server-role="dc" --domain="$DOMAIN" --realm="$REALM" --host-name="$HOSTNAME" --host-ip="$BR0_IP" --adminpass="$PASSWORD" || return 3
 
 # Add custom config to Samba's smb.conf
 for line in 'interfaces = lo br0' 'bind interfaces only = yes' 'printing = CUPS' 'printcap name = /dev/null' 'tls enabled  = yes' 'tls keyfile  = tls/key.pem' 'tls certfile = tls/cert.pem' 'tls cafile   = tls/ca.pem'; do
@@ -87,7 +91,7 @@ samba-tool user setexpiry Administrator --noexpiry
 
 # Now let's setup DHCP DDNS
 # Create DHCPd's user
-DHCPDPASS=`< /dev/urandom tr -dc A-Za-z0-9 | head -c${1:-32}`
+DHCPDPASS=`< /dev/urandom tr -dc A-Za-z0-9 | head -c${1:-256}`
 echo "$DHCPDPASS" > /etc/dhcp/dhcpduser.pass
 chown dhcpd:dhcpd /etc/dhcp/dhcpduser.pass
 chmod 400 /etc/dhcp/dhcpduser.pass
@@ -140,6 +144,7 @@ samba-tool dns zonecreate localhost "$REVERSE" -UAdministrator --password="$NEWP
 samba-tool dns add localhost "$REVERSE" 1 PTR `hostname -f` -UAdministrator --password="$NEWPASS"
 
 # Return successfully
+unset NEWPASS DHCPDPASS
 return 0
 
 }
@@ -156,9 +161,6 @@ return 0
 }
 
 clean_up() {
-
-# Remove downloaded folder
-rm -r /tmp/samba-ddns-updates
 
 # Enable all
 systemctl enable isc-dhcp-server
