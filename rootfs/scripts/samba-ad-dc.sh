@@ -101,7 +101,7 @@ chmod 400 /etc/dhcp/dhcpduser.keytab
 
 # Default ISC-DHCP-Server interfaces
 sed -i 's/^INTERFACESv4=.*/INTERFACESv4="br0"/' /etc/default/isc-dhcp-server
-sed -i 's/^INTERFACESv6=.*/#INTERFACESv6=""/' /etc/default/isc-dhcp-server
+sed -i 's/^INTERFACESv6=.*/INTERFACESv6=""/' /etc/default/isc-dhcp-server
 
 # Add configuration to /etc/dhcp/dhcpd.conf
 DNSDOMAIN="${REALM,,}"
