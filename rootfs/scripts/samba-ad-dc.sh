@@ -4,7 +4,7 @@
 
 pre_check() {
 
-if [ -z "$(hostname -d)" ]; then
+if [ -z "$(hostname -d)" ] || ! hostname -d | grep -q '\.'; then
   echo "No FQDN is setup. Please, provide a FQDN before setting up Samba AD DC."
   echo "You can do this by adding this entry to /etc/hosts file:"
   echo -e "$(ip addr show br0 | grep 'inet ' | awk '{print $2}' | cut -d '/' -f1)\t<FQDN>"
@@ -27,8 +27,9 @@ apt-get install -y isc-dhcp-server
 apt-get install -y acl attr build-essential docbook-xsl gdb krb5-user ldb-tools libacl1-dev libattr1-dev libblkid-dev libbsd-dev libcups2-dev libgnutls28-dev libldap2-dev libpam0g-dev libpopt-dev libreadline-dev pkg-config python-dev python-dnspython samba smbclient winbind
 unset DEBIAN_FRONTEND
 
-# Remove samba-ad-dc mask
+# Remove samba-ad-dc mask and enable
 rm /etc/systemd/system/samba-ad-dc.service
+systemctl enable samba-ad-dc
 
 # Backup default config file
 cp /etc/samba/smb.conf /etc/samba/smb.conf-dpkg && rm /etc/samba/smb.conf
