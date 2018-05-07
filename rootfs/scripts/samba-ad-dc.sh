@@ -150,6 +150,10 @@ subnet $SUBNET netmask 255.255.255.0 {
 }
 EOF
 
+# Change domain config in /etc/dhcp/dhclient.conf
+sed -i 's/^supersede domain-name .*/supersede domain-name "'"$DNSDOMAIN"'";/' /etc/dhcp/dhclient.conf
+sed -i 's/^supersede domain-search .*/supersede domain-search "'"$DNSDOMAIN"'";/' /etc/dhcp/dhclient.conf
+
 # OK, if we've made it so far, let's start Samba4 and create the reverse zone
 POS=0; unset REVERSE
 for n in `echo "$BR0_IP" | tr '.' ' '`; do
