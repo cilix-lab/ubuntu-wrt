@@ -107,7 +107,7 @@ sed -i 's/^INTERFACESv6=.*/INTERFACESv6=""/' /etc/default/isc-dhcp-server
 DNSDOMAIN="${REALM,,}"
 sed -i 's/^option domain-name .*/option domain-name "'"$DNSDOMAIN"'";/' /etc/dhcp/dhcpd.conf
 sed -i 's/^option domain-name-servers .*/option domain-name-servers '"$BR0_IP"';/' /etc/dhcp/dhcpd.conf
-sed -i 's/^default-lease-time .*/default-lease-time 3600;/' /etc/dhcp/dhcpd.conf
+sed -i 's/^default-lease-time .*/default-lease-time 1200;/' /etc/dhcp/dhcpd.conf
 sed -i 's/^#authoritative;/authoritative;/' /etc/dhcp/dhcpd.conf
 
 # Add DHCP and DDNS config to /etc/dhcp/dhcpd.conf
@@ -144,7 +144,7 @@ subnet $SUBNET netmask 255.255.255.0 {
     # cannot get a ClientMac here, apparently this only works when actually receiving a packet
     log(concat("Expired: IP: ", ClientIP));
     # cannot get a ClientName here, for some reason that always fails
-    execute("/usr/local/bin/dhcp-dyndns.sh", "delete", ClientIP, "", "0");
+    execute("/usr/local/bin/dhcp-dyndns.sh", "delete", ClientIP, "0");
   }
 
 }
