@@ -113,38 +113,38 @@ add)
     #_KERBEROS
     # Kerberos is not working with samba-tool, so we are using password authentication instead.
 
-# Add forward record
-#samba-tool dns delete 127.0.0.1 ${domain} ${name} A ${ip} -k yes > /dev/null 2>&1
-#samba-tool dns add 127.0.0.1 ${domain} ${name} A ${ip} -k yes
-samba-tool dns delete 127.0.0.1 ${domain} ${name} A ${ip} -Udhcpduser --password=`cat /etc/dhcp/dhcpduser.pass` > /dev/null 2>&1
-samba-tool dns add 127.0.0.1 ${domain} ${name} A ${ip} -Udhcpduser --password=`cat /etc/dhcp/dhcpduser.pass`
-result1=$?
+    # Add forward record
+    #samba-tool dns delete 127.0.0.1 ${domain} ${name} A ${ip} -k yes > /dev/null 2>&1
+    #samba-tool dns add 127.0.0.1 ${domain} ${name} A ${ip} -k yes
+    samba-tool dns delete 127.0.0.1 ${domain} ${name} A ${ip} -Udhcpduser --password=`cat /etc/dhcp/dhcpduser.pass` > /dev/null 2>&1
+    samba-tool dns add 127.0.0.1 ${domain} ${name} A ${ip} -Udhcpduser --password=`cat /etc/dhcp/dhcpduser.pass`
+    result1=$?
 
-# Add reverse record
-#samba-tool dns delete 127.0.0.1 ${ptr} $(echo ${ip} | cut -d '.' -f4) PTR ${name}.${domain} -k yes > /dev/null 2>&1
-#samba-tool dns add 127.0.0.1 ${ptr} $(echo ${ip} | cut -d '.' -f4) PTR ${name}.${domain} -k yes
-samba-tool dns delete 127.0.0.1 ${ptr} $(echo ${ip} | cut -d '.' -f4) PTR ${name}.${domain} -Udhcpduser --password=`cat /etc/dhcp/dhcpduser.pass` > /dev/null 2>&1
-samba-tool dns add 127.0.0.1 ${ptr} $(echo ${ip} | cut -d '.' -f4) PTR ${name}.${domain} -Udhcpduser --password=`cat /etc/dhcp/dhcpduser.pass`
-result2=$?
-;;
+    # Add reverse record
+    #samba-tool dns delete 127.0.0.1 ${ptr} $(echo ${ip} | cut -d '.' -f4) PTR ${name}.${domain} -k yes > /dev/null 2>&1
+    #samba-tool dns add 127.0.0.1 ${ptr} $(echo ${ip} | cut -d '.' -f4) PTR ${name}.${domain} -k yes
+    samba-tool dns delete 127.0.0.1 ${ptr} $(echo ${ip} | cut -d '.' -f4) PTR ${name}.${domain} -Udhcpduser --password=`cat /etc/dhcp/dhcpduser.pass` > /dev/null 2>&1
+    samba-tool dns add 127.0.0.1 ${ptr} $(echo ${ip} | cut -d '.' -f4) PTR ${name}.${domain} -Udhcpduser --password=`cat /etc/dhcp/dhcpduser.pass`
+    result2=$?
+    ;;
 delete)
      #_KERBEROS
      # Kerberos is not working with samba-tool, so we are using password authentication instead.
 
-# Delete forward record
-#samba-tool dns delete 127.0.0.1 ${domain} ${name} A ${ip} -k yes
-samba-tool dns delete 127.0.0.1 ${domain} ${name} A ${ip} -Udhcpduser --password=`cat /etc/dhcp/dhcpduser.pass`
-result1=$?
+     # Delete forward record
+     #samba-tool dns delete 127.0.0.1 ${domain} ${name} A ${ip} -k yes
+     samba-tool dns delete 127.0.0.1 ${domain} ${name} A ${ip} -Udhcpduser --password=`cat /etc/dhcp/dhcpduser.pass`
+     result1=$?
 
-# Delete reverse record
-#samba-tool dns delete 127.0.0.1 ${ptr} $(echo ${ip} | cut -d '.' -f4) PTR ${name}.${domain} -k yes
-samba-tool dns delete 127.0.0.1 ${ptr} $(echo ${ip} | cut -d '.' -f4) PTR ${name}.${domain} -Udhcpduser --password=`cat /etc/dhcp/dhcpduser.pass`
-result2=$?
-;;
+     # Delete reverse record
+     #samba-tool dns delete 127.0.0.1 ${ptr} $(echo ${ip} | cut -d '.' -f4) PTR ${name}.${domain} -k yes
+     samba-tool dns delete 127.0.0.1 ${ptr} $(echo ${ip} | cut -d '.' -f4) PTR ${name}.${domain} -Udhcpduser --password=`cat /etc/dhcp/dhcpduser.pass`
+     result2=$?
+     ;;
 *)
-echo "Invalid action specified"
-exit 103
-;;
+    echo "Invalid action specified"
+    exit 103
+    ;;
 esac
 
 result="${result1}${result2}"

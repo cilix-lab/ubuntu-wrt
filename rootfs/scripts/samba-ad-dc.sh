@@ -20,9 +20,14 @@ setup_addc() {
 wget -O "/usr/local/bin/dhcp-dyndns.sh" "https://github.com/cilix-lab/ubuntu-wrt/raw/master/samba-ddns-updates/usr/local/bin/dhcp-dyndns.sh" || return 2
 chmod +x /usr/local/bin/dhcp-dyndns.sh
 
+# Now let's fetch ddns-update.sh
+wget -O "/etc/dhcp/ddns-update.sh" "https://github.com/cilix-lab/ubuntu-wrt/raw/master/samba-ddns-updates/etc/dhcp/ddns-update.sh" || return 3
+chown dhcpd:dhcpd /etc/dhcp/ddns-update.sh
+chmod +x /etc/dhcp/ddns-update.sh
+
 # Install packages
 export DEBIAN_FRONTEND=noninteractive
-apt-get update || return 3
+apt-get update || return 4
 apt-get install -y isc-dhcp-server
 apt-get install -y acl attr build-essential docbook-xsl gdb krb5-user ldb-tools libacl1-dev libattr1-dev libblkid-dev libbsd-dev libcups2-dev libgnutls28-dev libldap2-dev libpam0g-dev libpopt-dev libreadline-dev pkg-config python-dev python-dnspython samba smbclient winbind
 unset DEBIAN_FRONTEND
@@ -129,14 +134,14 @@ subnet $SUBNET netmask 255.255.255.0 {
     set ClientDHCID = binary-to-ascii(16, 8, ":", hardware);
     set ClientName = pick-first-value(option host-name, config-option-host-name, client-name, noname);
     log(concat("Commit: IP: ", ClientIP, " DHCID: ", ClientDHCID, " Name: ", ClientName));
-    execute("/usr/local/bin/dhcp-dyndns.sh", "add", ClientIP, ClientDHCID, ClientName);
+    execute("/etc/dhcp/", "add", ClientIP, ClientDHCID, ClientName);
   }
 
   on release {
     set ClientIP = binary-to-ascii(10, 8, ".", leased-address);
     set ClientDHCID = binary-to-ascii(16, 8, ":", hardware);
     log(concat("Release: IP: ", ClientIP));
-    execute("/usr/local/bin/dhcp-dyndns.sh", "delete", ClientIP, ClientDHCID);
+    execute("/etc/dhcp/", "delete", ClientIP, ClientDHCID);
   }
 
   on expiry {
@@ -144,7 +149,7 @@ subnet $SUBNET netmask 255.255.255.0 {
     # cannot get a ClientMac here, apparently this only works when actually receiving a packet
     log(concat("Expired: IP: ", ClientIP));
     # cannot get a ClientName here, for some reason that always fails
-    execute("/usr/local/bin/dhcp-dyndns.sh", "delete", ClientIP, "0");
+    execute("/etc/dhcp/", "delete", ClientIP, "0");
   }
 
 }
