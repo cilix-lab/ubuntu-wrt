@@ -31,6 +31,7 @@
 #define HOSTCMD_CMD_802_11_TX_POWER             0x001f
 #define HOSTCMD_CMD_802_11_RF_ANTENNA           0x0020
 #define HOSTCMD_CMD_BROADCAST_SSID_ENABLE       0x0050 /* per-vif */
+#define HOSTCMD_CMD_SET_CFG                     0x008f
 #define HOSTCMD_CMD_SET_RF_CHANNEL              0x010a
 #define HOSTCMD_CMD_SET_AID                     0x010d /* per-vif */
 #define HOSTCMD_CMD_SET_INFRA_MODE              0x010e /* per-vif */
@@ -42,6 +43,7 @@
 #define HOSTCMD_CMD_SET_FIXED_RATE              0x0126
 #define HOSTCMD_CMD_SET_IES                     0x0127
 #define HOSTCMD_CMD_SET_LINKADAPT_CS_MODE       0x0129
+#define HOSTCMD_CMD_DUMP_OTP_DATA               0x0142
 #define HOSTCMD_CMD_SET_MAC_ADDR                0x0202 /* per-vif */
 #define HOSTCMD_CMD_SET_RATE_ADAPT_MODE         0x0203
 #define HOSTCMD_CMD_GET_WATCHDOG_BITMAP         0x0205
@@ -74,6 +76,9 @@
 #define HOSTCMD_CMD_QUIET_MODE                  0x1201
 #define HOSTCMD_CMD_CORE_DUMP_DIAG_MODE         0x1202
 #define HOSTCMD_CMD_GET_FW_CORE_DUMP            0x1203
+#define HOSTCMD_CMD_802_11_SLOT_TIME            0x1203
+#define HOSTCMD_CMD_EDMAC_CTRL                  0x1204
+#define HOSTCMD_CMD_TXPWRLMT_CFG                0x1211
 #define HOSTCMD_CMD_MCAST_CTS                   0x4001
 
 /* Define general result code for each command */
@@ -148,10 +153,29 @@
 #define HOSTCMD_ACT_GEN_SET_LIST                0x0002
 #define HOSTCMD_ACT_GEN_GET_LIST                0x0003
 
+/* Define TXPower control action*/
+#define HOSTCMD_ACT_GET_TARGET_TX_PWR           0x0000
+#define HOSTCMD_ACT_GET_MAX_TX_PWR              0x0001
+#define HOSTCMD_ACT_SET_TARGET_TX_PWR           0x0002
+#define HOSTCMD_ACT_SET_MAX_TX_PWR              0x0003
+
 /* Misc */
 #define WSC_IE_MAX_LENGTH                       251
 #define WSC_IE_SET_BEACON                       0
 #define WSC_IE_SET_PROBE_RESPONSE               1
+
+#define HW_SET_PARMS_FEATURES_HOST_PROBE_RESP   0x00000020
+
+#define EDMAC_2G_ENABLE_MASK                    0x00000001
+#define EDMAC_2G_ENABLE_SHIFT                   0x0
+#define EDMAC_5G_ENABLE_MASK                    0x00000002
+#define EDMAC_5G_ENABLE_SHIFT                   0x1
+#define EDMAC_2G_THRESHOLD_OFFSET_MASK          0x00000FF0
+#define EDMAC_2G_THRESHOLD_OFFSET_SHIFT         0x4
+#define EDMAC_5G_THRESHOLD_OFFSET_MASK          0x000FF000
+#define EDMAC_5G_THRESHOLD_OFFSET_SHIFT         0xC
+#define EDMAC_QLOCK_BITMAP_MASK                 0x0FF00000
+#define EDMAC_QLOCK_BITMAP_SHIFT                0x14
 
 enum {
 	WL_DISABLE = 0,
@@ -354,6 +378,16 @@ struct hostcmd_cmd_802_11_tx_power {
 	__le16 power_level_list[SYSADPT_TX_POWER_LEVEL_TOTAL];
 } __packed;
 
+struct hostcmd_cmd_802_11_tx_power_kf2 {
+	struct hostcmd_header cmd_hdr;
+	__le16 action;
+	__le16 band;
+	__le16 ch;
+	__le16 bw;
+	__le16 sub_ch;
+	__le16 power_level_list[SYSADPT_TX_GRP_PWR_LEVEL_TOTAL];
+} __packed;
+
 /* HOSTCMD_CMD_802_11_RF_ANTENNA */
 struct hostcmd_cmd_802_11_rf_antenna {
 	struct hostcmd_header cmd_hdr;
@@ -365,6 +399,19 @@ struct hostcmd_cmd_802_11_rf_antenna {
 struct hostcmd_cmd_broadcast_ssid_enable {
 	struct hostcmd_header cmd_hdr;
 	__le32 enable;
+} __packed;
+
+/* HOSTCMD_CMD_SET_CFG */
+struct hostcmd_cmd_set_cfg {
+	struct hostcmd_header cmd_hdr;
+	/* Action */
+	__le16 action;
+	/* Type */
+	__le16 type;
+	/* Data length */
+	__le16 data_len;
+	/* Data */
+	u8 data[1];
 } __packed;
 
 /* HOSTCMD_CMD_SET_RF_CHANNEL */
@@ -379,6 +426,14 @@ struct hostcmd_cmd_set_rf_channel {
 	__le16 action;
 	u8 curr_chnl;
 	__le32 chnl_flags;
+} __packed;
+
+struct hostcmd_cmd_set_rf_channel_kf2 {
+	struct hostcmd_header cmd_hdr;
+	__le16 action;
+	u8 curr_chnl;
+	__le32 chnl_flags;
+	u8 remain_on_chan;
 } __packed;
 
 /* HOSTCMD_CMD_SET_AID */
@@ -494,6 +549,12 @@ struct hostcmd_cmd_set_linkadapt_cs_mode {
 	__le16 cs_mode;
 } __packed;
 
+/* HOSTCMD_CMD_DUMP_OTP_DATA */
+struct hostcmd_cmd_dump_otp_data {
+	struct hostcmd_header cmd_hdr;
+	u8 pload[0];
+} __packed;
+
 /* HOSTCMD_CMD_SET_MAC_ADDR, HOSTCMD_CMD_DEL_MAC_ADDR */
 struct hostcmd_cmd_set_mac_addr {
 	struct hostcmd_header cmd_hdr;
@@ -602,6 +663,7 @@ struct wmm_param_elem {
 	u8 type;
 	u8 sub_type;
 	u8 version;
+	u8 qos_info;
 	u8 rsvd;
 	struct ac_param_rcd ac_be;
 	struct ac_param_rcd ac_bk;
@@ -639,6 +701,8 @@ struct start_cmd {
 	struct wmm_param_elem wmm_param;
 	struct country country;
 	__le32 ap_rf_type;           /* 0->B, 1->G, 2->Mixed, 3->A, 4->11J */
+	u8 rsvd[3];
+	u8 bssid[ETH_ALEN];          /* only for 88W8997                   */
 } __packed;
 
 struct hostcmd_cmd_ap_beacon {
@@ -675,7 +739,7 @@ struct hostcmd_cmd_set_new_stn {
 	u8 mac_addr[ETH_ALEN];
 	__le16 stn_id;
 	__le16 action;
-	__le16 reserved;
+	__le16 if_type;
 	struct peer_info peer_info;
 	/* UAPSD_SUPPORT */
 	u8 qos_info;
@@ -1140,6 +1204,56 @@ struct hostcmd_cmd_get_fw_core_dump_ {
 		struct coredump_cmd coredump;
 		struct debug_mem_cmd debug_mem;
 	} cmd_data;
+} __packed;
+
+/* HOSTCMD_CMD_802_11_SLOT_TIME */
+struct hostcmd_cmd_802_11_slot_time {
+	struct hostcmd_header cmd_hdr;
+	__le16 action;
+	/* 0:long slot; 1:short slot */
+	__le16 short_slot;
+} __packed;
+
+/* HOSTCMD_CMD_EDMAC_CTRL */
+struct hostcmd_cmd_edmac_ctrl {
+	struct hostcmd_header cmd_hdr;
+	__le16 action;
+	__le16 ed_ctrl_2g;
+	__le16 ed_offset_2g;
+	__le16 ed_ctrl_5g;
+	__le16 ed_offset_5g;
+	__le16 ed_bitmap_txq_lock;
+} __packed;
+
+/* HOSTCMD_CMD_TXPWRLMT_CFG */
+#define TXPWRLMT_CFG_VERSION_INFO_LEN 0x4
+#define TXPWRLMT_CFG_MAX_SUBBAND_INFO 0x5
+#define TXPWRLMT_CFG_SIG_LEN          0x4
+#define TXPWRLMT_CFG_SIGNATURE        0xA1240E01
+
+struct hostcmd_cmd_txpwrlmt_cfg {
+	struct hostcmd_header cmd_hdr;
+	/* Action */
+	__le16 action;
+	/*Sub band id*/
+	u8 subband_id;
+	/* Cfg Complete Info*/
+	u8 cfgComplete;
+	/* Data length */
+	__le16 data_len;
+	/*number of entries*/
+	__le16 num_entries;
+	/* Data */
+	u8 data[1];
+} __packed;
+
+struct mwl_txpwrlmt_cfg_entry_hdr {
+	/* subband id */
+	__le16 id;
+	/* length */
+	__le16 len;
+	/* number of entries */
+	__le16 num_entries;
 } __packed;
 
 /* HOSTCMD_CMD_MCAST_CTS */

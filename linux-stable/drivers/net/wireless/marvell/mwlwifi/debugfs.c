@@ -54,7 +54,8 @@ static const struct file_operations mwl_debugfs_##name##_fops = { \
 static const char chipname[MWLUNKNOWN][8] = {
 	"88W8864",
 	"88W8897",
-	"88W8964"
+	"88W8964",
+	"88W8997"
 };
 
 static void dump_data(char *p, int size, int *len, u8 *data,
@@ -444,6 +445,8 @@ static ssize_t mwl_debugfs_vif_read(struct file *file, char __user *ubuf,
 	struct mwl_vif *mwl_vif;
 	struct ieee80211_vif *vif;
 	char ssid[IEEE80211_MAX_SSID_LEN + 1];
+	struct cfg80211_chan_def *chan_def;
+	struct beacon_info *beacon_info;
 	ssize_t ret;
 
 	if (!p)
@@ -467,6 +470,11 @@ static ssize_t mwl_debugfs_vif_read(struct file *file, char __user *ubuf,
 			len += scnprintf(p + len, size - len,
 					 "mac address: %pM\n", mwl_vif->bssid);
 			break;
+		case NL80211_IFTYPE_MESH_POINT:
+			len += scnprintf(p + len, size - len, "type: mesh\n");
+			len += scnprintf(p + len, size - len,
+					 "mac address: %pM\n", mwl_vif->bssid);
+			break;
 		case NL80211_IFTYPE_STATION:
 			len += scnprintf(p + len, size - len, "type: sta\n");
 			len += scnprintf(p + len, size - len,
@@ -478,6 +486,18 @@ static ssize_t mwl_debugfs_vif_read(struct file *file, char __user *ubuf,
 					 "type: unknown\n");
 			break;
 		}
+		if (vif->chanctx_conf) {
+			chan_def = &vif->chanctx_conf->def;
+			len += scnprintf(p + len, size - len,
+					 "channel: %d: width: %d\n",
+					 chan_def->chan->hw_value,
+					 chan_def->width);
+			len += scnprintf(p + len, size - len,
+					 "freq: %d freq1: %d freq2: %d\n",
+					 chan_def->chan->center_freq,
+					 chan_def->center_freq1,
+					 chan_def->center_freq2);
+		}
 		len += scnprintf(p + len, size - len, "hw_crypto_enabled: %s\n",
 				 mwl_vif->is_hw_crypto_enabled ?
 				 "true" : "false");
@@ -486,18 +506,27 @@ static ssize_t mwl_debugfs_vif_read(struct file *file, char __user *ubuf,
 		len += scnprintf(p + len, size - len,
 				 "IV: %08x%04x\n", mwl_vif->iv32,
 				 mwl_vif->iv16);
-		dump_data(p, size, &len, mwl_vif->beacon_info.ie_wmm_ptr,
-			  mwl_vif->beacon_info.ie_wmm_len, "WMM:");
-		dump_data(p, size, &len, mwl_vif->beacon_info.ie_rsn_ptr,
-			  mwl_vif->beacon_info.ie_rsn_len, "RSN:");
-		dump_data(p, size, &len, mwl_vif->beacon_info.ie_rsn48_ptr,
-			  mwl_vif->beacon_info.ie_rsn48_len, "RSN48:");
-		dump_data(p, size, &len, mwl_vif->beacon_info.ie_mde_ptr,
-			  mwl_vif->beacon_info.ie_mde_len, "MDE:");
-		dump_data(p, size, &len, mwl_vif->beacon_info.ie_ht_ptr,
-			  mwl_vif->beacon_info.ie_ht_len, "HT:");
-		dump_data(p, size, &len, mwl_vif->beacon_info.ie_vht_ptr,
-			  mwl_vif->beacon_info.ie_vht_len, "VHT:");
+		beacon_info = &mwl_vif->beacon_info;
+		dump_data(p, size, &len, beacon_info->ie_wmm_ptr,
+			  beacon_info->ie_wmm_len, "WMM:");
+		dump_data(p, size, &len, beacon_info->ie_rsn_ptr,
+			  beacon_info->ie_rsn_len, "RSN:");
+		dump_data(p, size, &len, beacon_info->ie_rsn48_ptr,
+			  beacon_info->ie_rsn48_len, "RSN48:");
+		dump_data(p, size, &len, beacon_info->ie_mde_ptr,
+			  beacon_info->ie_mde_len, "MDE:");
+		dump_data(p, size, &len, beacon_info->ie_ht_ptr,
+			  beacon_info->ie_ht_len, "HT:");
+		dump_data(p, size, &len, beacon_info->ie_vht_ptr,
+			  beacon_info->ie_vht_len, "VHT:");
+		if (vif->type == NL80211_IFTYPE_MESH_POINT) {
+			dump_data(p, size, &len, beacon_info->ie_meshid_ptr,
+				  beacon_info->ie_meshid_len, "MESHID:");
+			dump_data(p, size, &len, beacon_info->ie_meshcfg_ptr,
+				  beacon_info->ie_meshcfg_len, "MESHCFG:");
+			dump_data(p, size, &len, beacon_info->ie_meshchsw_ptr,
+				  beacon_info->ie_meshchsw_len, "MESHCHSW:");
+		}
 		len += scnprintf(p + len, size - len, "\n");
 	}
 	spin_unlock_bh(&priv->vif_lock);
@@ -717,6 +746,17 @@ static ssize_t mwl_debugfs_device_pwrtbl_read(struct file *file,
 	return ret;
 }
 
+static ssize_t mwl_debugfs_txpwrlmt_read(struct file *file,
+					 char __user *ubuf,
+					 size_t count, loff_t *ppos)
+{
+	struct mwl_priv *priv = (struct mwl_priv *)file->private_data;
+
+	return simple_read_from_buffer(ubuf, count, ppos,
+				       priv->txpwrlmt_data.buf,
+				       priv->txpwrlmt_data.len);
+}
+
 static ssize_t mwl_debugfs_tx_amsdu_read(struct file *file,
 					 char __user *ubuf,
 					 size_t count, loff_t *ppos)
@@ -766,6 +806,63 @@ static ssize_t mwl_debugfs_tx_amsdu_write(struct file *file,
 	}
 
 	priv->tx_amsdu = value ? true : false;
+
+	ret = count;
+
+err:
+	free_page(addr);
+	return ret;
+}
+
+static ssize_t mwl_debugfs_dfs_test_read(struct file *file,
+					 char __user *ubuf,
+					 size_t count, loff_t *ppos)
+{
+	struct mwl_priv *priv = (struct mwl_priv *)file->private_data;
+	unsigned long page = get_zeroed_page(GFP_KERNEL);
+	char *p = (char *)page;
+	int len = 0, size = PAGE_SIZE;
+	ssize_t ret;
+
+	if (!p)
+		return -ENOMEM;
+
+	len += scnprintf(p + len, size - len, "\n");
+	len += scnprintf(p + len, size - len, "dfs_test: %s\n",
+			 priv->dfs_test ? "enable" : "disable");
+	len += scnprintf(p + len, size - len, "\n");
+
+	ret = simple_read_from_buffer(ubuf, count, ppos, p, len);
+	free_page(page);
+
+	return ret;
+}
+
+static ssize_t mwl_debugfs_dfs_test_write(struct file *file,
+					  const char __user *ubuf,
+					  size_t count, loff_t *ppos)
+{
+	struct mwl_priv *priv = (struct mwl_priv *)file->private_data;
+	unsigned long addr = get_zeroed_page(GFP_KERNEL);
+	char *buf = (char *)addr;
+	size_t buf_size = min_t(size_t, count, PAGE_SIZE - 1);
+	int value;
+	ssize_t ret;
+
+	if (!buf)
+		return -ENOMEM;
+
+	if (copy_from_user(buf, ubuf, buf_size)) {
+		ret = -EFAULT;
+		goto err;
+	}
+
+	if (kstrtoint(buf, 0, &value)) {
+		ret = -EINVAL;
+		goto err;
+	}
+
+	priv->dfs_test = value ? true : false;
 
 	ret = count;
 
@@ -1574,7 +1671,7 @@ static ssize_t mwl_debugfs_core_dump_read(struct file *file, char __user *ubuf,
 	char *p = (char *)page;
 	int len = 0, size = PAGE_SIZE;
 	struct coredump_cmd *core_dump = NULL;
-	struct coredump *cd;
+	struct coredump *cd = NULL;
 	char  *buff = NULL;
 	u32 i, offset;
 	u32 address, length;
@@ -1793,7 +1890,9 @@ MWLWIFI_DEBUGFS_FILE_READ_OPS(sta);
 MWLWIFI_DEBUGFS_FILE_READ_OPS(ampdu);
 MWLWIFI_DEBUGFS_FILE_READ_OPS(stnid);
 MWLWIFI_DEBUGFS_FILE_READ_OPS(device_pwrtbl);
+MWLWIFI_DEBUGFS_FILE_READ_OPS(txpwrlmt);
 MWLWIFI_DEBUGFS_FILE_OPS(tx_amsdu);
+MWLWIFI_DEBUGFS_FILE_OPS(dfs_test);
 MWLWIFI_DEBUGFS_FILE_OPS(dfs_channel);
 MWLWIFI_DEBUGFS_FILE_OPS(dfs_radar);
 MWLWIFI_DEBUGFS_FILE_OPS(thermal);
@@ -1825,7 +1924,9 @@ void mwl_debugfs_init(struct ieee80211_hw *hw)
 	MWLWIFI_DEBUGFS_ADD_FILE(ampdu);
 	MWLWIFI_DEBUGFS_ADD_FILE(stnid);
 	MWLWIFI_DEBUGFS_ADD_FILE(device_pwrtbl);
+	MWLWIFI_DEBUGFS_ADD_FILE(txpwrlmt);
 	MWLWIFI_DEBUGFS_ADD_FILE(tx_amsdu);
+	MWLWIFI_DEBUGFS_ADD_FILE(dfs_test);
 	MWLWIFI_DEBUGFS_ADD_FILE(dfs_channel);
 	MWLWIFI_DEBUGFS_ADD_FILE(dfs_radar);
 	MWLWIFI_DEBUGFS_ADD_FILE(thermal);

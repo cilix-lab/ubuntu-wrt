@@ -27,11 +27,14 @@
 
 /* antenna control */
 #define ANTENNA_TX_4_AUTO             0
+#define ANTENNA_TX_1                  1
 #define ANTENNA_TX_2                  3
 #define ANTENNA_TX_3                  7
 #define ANTENNA_RX_4_AUTO             0
+#define ANTENNA_RX_1                  1
 #define ANTENNA_RX_2                  2
 #define ANTENNA_RX_3                  3
+#define ANTENNA_RX_MAX                4
 
 /* band related constants */
 #define BAND_24_CHANNEL_NUM           14
@@ -109,12 +112,18 @@
 #define MU_MIMO                       1
 #define SU_MU_TYPE_CNT                2 /* traffic type, SU and MU */
 
+/* BF operation mode */
+#define TXBF_MODE_OFF                 0x05
+#define TXBF_MODE_AUTO                0x06
+#define TXBF_MODE_BFMER_AUTO          0x07
+
 static const u8 TX_HISTO_PER_THRES[TX_RATE_HISTO_PER_CNT - 1] = {6, 12, 20, 30};
 
 enum {
 	MWL8864 = 0,
 	MWL8897,
 	MWL8964,
+	MWL8997,
 	MWLUNKNOWN,
 };
 
@@ -138,6 +147,8 @@ enum {
 struct mwl_chip_info {
 	const char *part_name;
 	const char *fw_image;
+	const char *cal_file;
+	const char *txpwrlmt_file;
 	int antenna_tx;
 	int antenna_rx;
 };
@@ -176,10 +187,24 @@ struct mwl_stnid {
 	u16 aid;                    /* keep aid for related stnid   */
 };
 
+struct otp_data {
+	u8 buf[SYSADPT_OTP_BUF_SIZE];
+	u32 len; /* Actual size of data in buf[] */
+};
+
+struct txpwrlmt_cfg_data {
+	u8 buf[SYSADPT_TXPWRLMT_CFG_BUF_SIZE];
+	u32 len; /* Actual size of data in buf[] */
+};
+
 struct mwl_priv {
 	struct ieee80211_hw *hw;
 	struct device *dev;
 	struct firmware *fw_ucode;
+	struct firmware *cal_data;
+	struct firmware *txpwrlmt_file;
+	struct otp_data otp_data;
+	struct txpwrlmt_cfg_data txpwrlmt_data;
 	bool fw_device_pwrtbl;
 	bool forbidden_setting;
 	bool regulatory_set;
@@ -207,8 +232,9 @@ struct mwl_priv {
 	bool cdd;
 	u16 txantenna2;
 	u8 powinited;
-	u16 max_tx_pow[SYSADPT_TX_POWER_LEVEL_TOTAL]; /* max tx power (dBm) */
-	u16 target_powers[SYSADPT_TX_POWER_LEVEL_TOTAL]; /* target powers   */
+	u8 pwr_level;
+	u16 max_tx_pow[SYSADPT_TX_GRP_PWR_LEVEL_TOTAL]; /* max tx power (dBm) */
+	u16 target_powers[SYSADPT_TX_GRP_PWR_LEVEL_TOTAL]; /* target powers   */
 
 	struct mutex fwcmd_mutex;    /* for firmware command         */
 	unsigned short *pcmd_buf;    /* pointer to CmdBuf (virtual)  */
@@ -278,6 +304,7 @@ struct mwl_priv {
 	struct work_struct wds_check_handle;
 	u8 wds_check_sta[ETH_ALEN];
 
+	bool dfs_test;
 	bool csa_active;
 	struct work_struct chnl_switch_handle;
 	enum nl80211_dfs_regions dfs_region;
@@ -286,6 +313,8 @@ struct mwl_priv {
 	u16 dfs_pw_filter;
 	u16 dfs_min_num_radar;
 	u16 dfs_min_pri_count;
+
+	u8 bf_type;
 
 	struct thermal_cooling_device *cdev;
 	u32 throttle_state;
@@ -319,6 +348,9 @@ struct beacon_info {
 	u8 *ie_ht_ptr;
 	u8 *ie_vht_ptr;
 	u8 *ie_country_ptr;
+	u8 *ie_meshid_ptr;
+	u8 *ie_meshcfg_ptr;
+	u8 *ie_meshchsw_ptr;
 	u8 ie_wmm_len;
 	u8 ie_wsc_len;
 	u8 ie_rsn_len;
@@ -327,6 +359,9 @@ struct beacon_info {
 	u8 ie_ht_len;
 	u8 ie_vht_len;
 	u8 ie_country_len;
+	u8 ie_meshid_len;
+	u8 ie_meshcfg_len;
+	u8 ie_meshchsw_len;
 };
 
 struct mwl_vif {
@@ -447,7 +482,8 @@ struct ieee80211_hw *mwl_alloc_hw(int bus_type,
 
 void mwl_free_hw(struct ieee80211_hw *hw);
 
-int mwl_init_hw(struct ieee80211_hw *hw, const char *fw_name);
+int mwl_init_hw(struct ieee80211_hw *hw, const char *fw_name,
+		const char *cal_name, const char *txpwrlmt_name);
 
 void mwl_deinit_hw(struct ieee80211_hw *hw);
 

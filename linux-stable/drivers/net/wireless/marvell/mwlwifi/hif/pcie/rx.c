@@ -202,7 +202,11 @@ static inline void pcie_rx_status(struct mwl_priv *priv,
 	u16 rx_rate;
 
 	memset(status, 0, sizeof(*status));
-	status->signal = -(pdesc->rssi + W836X_RSSI_OFFSET);
+
+	if (priv->chip_type == MWL8997)
+		status->signal = (s8)pdesc->rssi;
+	else
+		status->signal = -(pdesc->rssi + W836X_RSSI_OFFSET);
 
 	rx_rate = le16_to_cpu(pdesc->rate);
 	pcie_rx_prepare_status(priv,
@@ -236,6 +240,76 @@ static inline void pcie_rx_status(struct mwl_priv *priv,
 			}
 		}
 	}
+}
+
+static inline bool pcie_rx_process_mesh_amsdu(struct mwl_priv *priv,
+					     struct sk_buff *skb,
+					     struct ieee80211_rx_status *status)
+{
+	struct ieee80211_hdr *wh;
+	struct mwl_sta *sta_info;
+	struct ieee80211_sta *sta;
+	u8 *qc;
+	int wh_len;
+	int len;
+	u8 pad;
+	u8 *data;
+	u16 frame_len;
+	struct sk_buff *newskb;
+
+	wh = (struct ieee80211_hdr *)skb->data;
+
+	spin_lock_bh(&priv->sta_lock);
+	list_for_each_entry(sta_info, &priv->sta_list, list) {
+		sta = container_of((void *)sta_info, struct ieee80211_sta,
+				   drv_priv[0]);
+		if (ether_addr_equal(sta->addr, wh->addr2)) {
+			if (!sta_info->is_mesh_node) {
+				spin_unlock_bh(&priv->sta_lock);
+				return false;
+			}
+		}
+	}
+	spin_unlock_bh(&priv->sta_lock);
+
+	qc = ieee80211_get_qos_ctl(wh);
+	*qc &= ~IEEE80211_QOS_CTL_A_MSDU_PRESENT;
+
+	wh_len = ieee80211_hdrlen(wh->frame_control);
+	len = wh_len;
+	data = skb->data;
+
+	while (len < skb->len) {
+		frame_len = *(u8 *)(data + len + ETH_HLEN - 1) |
+			(*(u8 *)(data + len + ETH_HLEN - 2) << 8);
+
+		if ((len + ETH_HLEN + frame_len) > skb->len)
+			break;
+
+		newskb = dev_alloc_skb(wh_len + frame_len);
+		if (!newskb)
+			break;
+
+		ether_addr_copy(wh->addr3, data + len);
+		ether_addr_copy(wh->addr4, data + len + ETH_ALEN);
+		memcpy(newskb->data, wh, wh_len);
+		memcpy(newskb->data + wh_len, data + len + ETH_HLEN, frame_len);
+		skb_put(newskb, wh_len + frame_len);
+
+		pad = ((ETH_HLEN + frame_len) % 4) ?
+			(4 - (ETH_HLEN + frame_len) % 4) : 0;
+		len += (ETH_HLEN + frame_len + pad);
+		if (len < skb->len)
+			status->flag |= RX_FLAG_AMSDU_MORE;
+		else
+			status->flag &= ~RX_FLAG_AMSDU_MORE;
+		memcpy(IEEE80211_SKB_RXCB(newskb), status, sizeof(*status));
+		ieee80211_rx(priv->hw, newskb);
+	}
+
+	dev_kfree_skb_any(skb);
+
+	return true;
 }
 
 static inline int pcie_rx_refill(struct mwl_priv *priv,
@@ -316,7 +390,7 @@ void pcie_rx_recv(unsigned long data)
 	int work_done = 0;
 	struct sk_buff *prx_skb = NULL;
 	int pkt_len;
-	struct ieee80211_rx_status status;
+	struct ieee80211_rx_status *status;
 	struct mwl_vif *mwl_vif = NULL;
 	struct ieee80211_hdr *wh;
 
@@ -352,9 +426,15 @@ void pcie_rx_recv(unsigned long data)
 			goto out;
 		}
 
-		pcie_rx_status(priv, curr_hndl->pdesc, &status);
+		status = IEEE80211_SKB_RXCB(prx_skb);
+		pcie_rx_status(priv, curr_hndl->pdesc, status);
 
-		priv->noise = -curr_hndl->pdesc->noise_floor;
+		if (priv->chip_type == MWL8997) {
+			priv->noise = (s8)curr_hndl->pdesc->noise_floor;
+			if (priv->noise > 0)
+				priv->noise = -priv->noise;
+		} else
+			priv->noise = -curr_hndl->pdesc->noise_floor;
 
 		wh = &((struct pcie_dma_data *)prx_skb->data)->wh;
 
@@ -390,7 +470,7 @@ void pcie_rx_recv(unsigned long data)
 				 * 0 for triggering Counter
 				 * Measure of MMIC failure.
 				 */
-				if (status.flag & RX_FLAG_MMIC_ERROR) {
+				if (status->flag & RX_FLAG_MMIC_ERROR) {
 					struct pcie_dma_data *dma_data;
 
 					dma_data = (struct pcie_dma_data *)
@@ -399,10 +479,17 @@ void pcie_rx_recv(unsigned long data)
 					pkt_len += 4;
 				}
 
-				if (!ieee80211_is_auth(wh->frame_control))
-					status.flag |= RX_FLAG_IV_STRIPPED |
-						       RX_FLAG_DECRYPTED |
-						       RX_FLAG_MMIC_STRIPPED;
+				if (!ieee80211_is_auth(wh->frame_control)) {
+					if (priv->chip_type != MWL8997)
+						status->flag |=
+							RX_FLAG_IV_STRIPPED |
+							RX_FLAG_DECRYPTED |
+							RX_FLAG_MMIC_STRIPPED;
+					else
+						status->flag |=
+							RX_FLAG_DECRYPTED |
+							RX_FLAG_MMIC_STRIPPED;
+				}
 			}
 		}
 
@@ -423,7 +510,16 @@ void pcie_rx_recv(unsigned long data)
 				*qc |= 7;
 		}
 
-		memcpy(IEEE80211_SKB_RXCB(prx_skb), &status, sizeof(status));
+		if (ieee80211_is_data_qos(wh->frame_control) &&
+		    ieee80211_has_a4(wh->frame_control)) {
+			u8 *qc = ieee80211_get_qos_ctl(wh);
+
+			if (*qc & IEEE80211_QOS_CTL_A_MSDU_PRESENT)
+				if (pcie_rx_process_mesh_amsdu(priv, prx_skb,
+							      status))
+					goto out;
+		}
+
 		ieee80211_rx(hw, prx_skb);
 out:
 		pcie_rx_refill(priv, curr_hndl);

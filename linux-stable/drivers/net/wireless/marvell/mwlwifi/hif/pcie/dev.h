@@ -27,9 +27,10 @@
 #include <net/mac80211.h>
 
 #define PCIE_DRV_NAME    KBUILD_MODNAME
-#define PCIE_DRV_VERSION "10.3.4.0-20180330"
+#define PCIE_DRV_VERSION "10.3.8.0-20180906"
 
 #define PCIE_MIN_BYTES_HEADROOM   64
+#define PCIE_MIN_TX_HEADROOM_KF2  96
 #define PCIE_NUM_OF_DESC_DATA     SYSADPT_TOTAL_TX_QUEUES
 #define PCIE_AMPDU_QUEUES         4
 #define PCIE_MAX_NUM_TX_DESC      256
@@ -145,7 +146,7 @@ struct pcie_tx_desc {
 	u8 packet_id;
 	__le16 packet_len_and_retry;
 	__le16 packet_rate_info;
-	__le32 reserved4;
+	__le32 flags;
 	__le32 status;
 } __packed;
 
@@ -513,6 +514,64 @@ struct ndp_rx_counter {
 	u32 mu_pkt_cnt;
 };
 
+/* KF2 - 88W8997 */
+#define PCIE_MAX_TXRX_BD                0x20
+/* PCIE read data pointer for queue 0 and 1 */
+#define PCIE_RD_DATA_PTR_Q0_Q1          0xC1A4  /* 0x8000C1A4          */
+/* PCIE read data pointer for queue 2 and 3 */
+#define PCIE_RD_DATA_PTR_Q2_Q3          0xC1A8  /* 0x8000C1A8          */
+/* PCIE write data pointer for queue 0 and 1 */
+#define PCIE_WR_DATA_PTR_Q0_Q1          0xC174  /* 0x8000C174          */
+/* PCIE write data pointer for queue 2 and 3 */
+#define PCIE_WR_DATA_PTR_Q2_Q3          0xC178  /* 0x8000C178          */
+
+/* TX buffer description read pointer */
+#define REG_TXBD_RDPTR                  PCIE_RD_DATA_PTR_Q0_Q1
+/* TX buffer description write pointer */
+#define REG_TXBD_WRPTR                  PCIE_WR_DATA_PTR_Q0_Q1
+
+#define PCIE_TX_START_PTR               16
+
+#define PCIE_TXBD_MASK                  0x0FFF0000
+#define PCIE_TXBD_WRAP_MASK             0x1FFF0000
+
+#define PCIE_BD_FLAG_RX_ROLLOVER_IND    BIT(12)
+#define PCIE_BD_FLAG_TX_START_PTR       BIT(16)
+#define PCIE_BD_FLAG_TX_ROLLOVER_IND    BIT(28)
+#define PCIE_BD_FLAG_TX2_START_PTR      BIT(0)
+#define PCIE_BD_FLAG_TX2_ROLLOVER_IND   BIT(12)
+
+#define PCIE_BD_FLAG_FIRST_DESC         BIT(0)
+#define PCIE_BD_FLAG_LAST_DESC          BIT(1)
+
+#define PCIE_TX_WCB_FLAGS_DONT_ENCRYPT  0x00000001
+#define PCIE_TX_WCB_FLAGS_NO_CCK_RATE   0x00000002
+
+#define PCIE_TXBD_NOT_FULL(wrptr, rdptr) \
+	(((wrptr & PCIE_TXBD_MASK) != (rdptr & PCIE_TXBD_MASK)) \
+	 || ((wrptr & PCIE_BD_FLAG_TX_ROLLOVER_IND) ==          \
+	     (rdptr & PCIE_BD_FLAG_TX_ROLLOVER_IND)))
+
+struct pcie_data_buf {
+	/* Buffer descriptor flags */
+	__le16 flags;
+	/* Offset of fragment/pkt to start of ip header */
+	__le16 offset;
+	/* Fragment length of the buffer */
+	__le16 frag_len;
+	/* Length of the buffer */
+	__le16 len;
+	/* Physical address of the buffer */
+	__le64 paddr;
+	/* Reserved */
+	__le32 reserved;
+} __packed;
+
+struct pcie_pfu_dma_data {
+	struct pcie_tx_desc tx_desc;
+	struct pcie_dma_data dma_data;
+} __packed;
+
 struct pcie_priv {
 	struct mwl_priv *mwl_priv;
 	struct pci_dev *pdev;
@@ -527,6 +586,7 @@ struct pcie_priv {
 	struct tasklet_struct tx_done_task;
 	struct tasklet_struct rx_task;
 	struct tasklet_struct qe_task;
+	unsigned int tx_head_room;
 	int txq_limit;
 	int txq_wake_threshold;
 	bool is_tx_schedule;
@@ -554,21 +614,42 @@ struct pcie_priv {
 	struct ndp_rx_counter rx_cnts;
 	u32 rx_skb_unlink_err;
 	u32 signature_err;
+	u32 recheck_rxringdone;
+	u32 acnt_busy;
+	u32 acnt_wrap;
+	u32 acnt_drop;
+
+	/* KF2 - 88W8997 */
+	struct firmware *cal_data;
+	/* Write pointer for TXBD ring */
+	u32 txbd_wrptr;
+	/* Shadow copy of TXBD read pointer */
+	u32 txbd_rdptr;
+	/* TXBD ring size */
+	u32 txbd_ring_size;
+	/* Virtual base address of txbd_ring */
+	u8 *txbd_ring_vbase;
+	/* Physical base address of txbd_ring */
+	dma_addr_t txbd_ring_pbase;
+	/* Ring of buffer descriptors for TX */
+	struct pcie_data_buf *txbd_ring[PCIE_MAX_TXRX_BD];
+	struct sk_buff *tx_buf_list[PCIE_MAX_TXRX_BD];
 };
 
 enum { /* Definition of accounting record codes */
 	ACNT_CODE_BUSY = 0,   /* Marked busy until filled in                  */
-	ACNT_CODE_WRAP,       /* Used to pad when wrapping (no TSF sometimes) */
-	ACNT_CODE_DROP,       /* Count of dropped records (acnt_u32_t)        */
-	ACNT_CODE_TX_ENQUEUE, /* TXINFO when added to TCQ (acnt_tx_t)         */
-	ACNT_CODE_RX_PPDU,    /* RXINFO for each PPDu (acnt_rx_t)             */
-	ACNT_CODE_TX_FLUSH,   /* Flush Tx Queue (acnt_txflush_t)              */
-	ACNT_CODE_RX_RESET,   /* Channel Change / Rx Reset (acnt_u32_t)       */
-	ACNT_CODE_TX_RESET,   /* TCQ reset (acnt_u8_t)                        */
-	ACNT_CODE_QUOTE_LEVEL,/* Quota Level changes (acnt_u8_t)              */
-	ACNT_CODE_TX_DONE,    /* Tx status when done (acnt_tx2_t)             */
-	ACNT_CODE_RA_STATS,   /* rateinfo PER (acnt_RA_stats_t)               */
-	ACNT_CODE_BA_STATS,   /* BA stats (acnt_BA_stats_t)                   */
+	ACNT_CODE_WRAP,       /* Used to pad when wrapping                    */
+	ACNT_CODE_DROP,       /* Count of dropped records                     */
+	ACNT_CODE_TX_ENQUEUE, /* TXINFO when added to TCQ (acnt_tx_s)         */
+	ACNT_CODE_RX_PPDU,    /* RXINFO for each PPDu (acnt_rx_s)             */
+	ACNT_CODE_TX_FLUSH,   /* Flush Tx Queue                               */
+	ACNT_CODE_RX_RESET,   /* Channel Change / Rx Reset                    */
+	ACNT_CODE_TX_RESET,   /* TCQ reset                                    */
+	ACNT_CODE_QUOTE_LEVEL,/* Quota Level changes                          */
+	ACNT_CODE_TX_DONE,    /* Tx status when done                          */
+	ACNT_CODE_RA_STATS,   /* rateinfo PER (acnt_ra_s)                     */
+	ACNT_CODE_BA_STATS,   /* BA stats (acnt_ba_s)                         */
+	ACNT_CODE_BF_MIMO_CTRL,/* BF Mimo Ctrl Field Log (acnt_bf_mimo_ctrl_s)*/
 };
 
 struct acnt_s { /* Baseline Accounting Record format */
@@ -635,15 +716,32 @@ struct acnt_ba_s { /* Accounting Record w/ rateinfo PER */
 	u8 pad[3];            /* Unused                                       */
 } __packed;
 
+struct acnt_bf_mimo_ctrl_s {/* Accounting Record w/ BF MIMO Control Field Data*/
+	__le16 code;          /* Unique code for each type                    */
+	u8 len;               /* Length in DWORDS, including header           */
+	u8 type;              /* SU:0, MU:1                                   */
+	__le32 tsf;           /* Timestamp for Entry (when len>1)             */
+	u8 rec_mac[6];        /* Received Packet Source MAC Address           */
+	__le16 pad;           /* Padding                                      */
+	__le32 mimo_ctrl;     /* BF MIMO Control Field Data                   */
+	__le64 comp_bf_rep;   /* First 8 bytes of Compressed BF Report        */
+} __packed;
+
 static inline void pcie_tx_add_dma_header(struct mwl_priv *priv,
 					 struct sk_buff *skb,
 					 int head_pad,
 					 int tail_pad)
 {
 	struct ieee80211_hdr *wh;
+	int dma_hdrlen;
 	int hdrlen;
 	int reqd_hdrlen;
+	int needed_room;
 	struct pcie_dma_data *dma_data;
+
+	dma_hdrlen = (priv->chip_type == MWL8997) ?
+		sizeof(struct pcie_pfu_dma_data) :
+		sizeof(struct pcie_dma_data);
 
 	/* Add a firmware DMA header; the firmware requires that we
 	 * present a 2-byte payload length followed by a 4-address
@@ -654,15 +752,25 @@ static inline void pcie_tx_add_dma_header(struct mwl_priv *priv,
 
 	hdrlen = ieee80211_hdrlen(wh->frame_control);
 
-	reqd_hdrlen = sizeof(*dma_data) + head_pad;
+	reqd_hdrlen = dma_hdrlen + head_pad;
 
-	if (hdrlen != reqd_hdrlen)
-		skb_push(skb, reqd_hdrlen - hdrlen);
+	if (hdrlen != reqd_hdrlen) {
+		needed_room = reqd_hdrlen - hdrlen;
+		if (skb_headroom(skb) < needed_room) {
+			wiphy_debug(priv->hw->wiphy, "headroom is short: %d %d",
+				    skb_headroom(skb), needed_room);
+			skb_cow(skb, needed_room);
+		}
+		skb_push(skb, needed_room);
+	}
 
 	if (ieee80211_is_data_qos(wh->frame_control))
 		hdrlen -= IEEE80211_QOS_CTL_LEN;
 
-	dma_data = (struct pcie_dma_data *)skb->data;
+	if (priv->chip_type == MWL8997)
+		dma_data = &((struct pcie_pfu_dma_data *)skb->data)->dma_data;
+	else
+		dma_data = (struct pcie_dma_data *)skb->data;
 
 	if (wh != &dma_data->wh)
 		memmove(&dma_data->wh, wh, hdrlen);
@@ -676,7 +784,7 @@ static inline void pcie_tx_add_dma_header(struct mwl_priv *priv,
 	 * This includes all crypto material including the MIC.
 	 */
 	dma_data->fwlen =
-		cpu_to_le16(skb->len - sizeof(*dma_data) + tail_pad);
+		cpu_to_le16(skb->len - dma_hdrlen + tail_pad);
 }
 
 static inline void pcie_tx_encapsulate_frame(struct mwl_priv *priv,

@@ -32,14 +32,15 @@
 #define PCIE_DRV_DESC "Marvell Mac80211 Wireless PCIE Network Driver"
 #define PCIE_DEV_NAME "Marvell 802.11ac PCIE Adapter"
 
-#define MAX_WAIT_FW_COMPLETE_ITERATIONS 2000
+#define MAX_WAIT_FW_COMPLETE_ITERATIONS 10000
 #define CHECK_BA_TRAFFIC_TIME           300 /* msec */
 #define CHECK_TX_DONE_TIME              50  /* msec */
 
 static struct pci_device_id pcie_id_tbl[] = {
-	{ PCI_VDEVICE(MARVELL, 0x2a55), .driver_data = MWL8864, },
-	{ PCI_VDEVICE(MARVELL, 0x2b38), .driver_data = MWL8897, },
-	{ PCI_VDEVICE(MARVELL, 0x2b40), .driver_data = MWL8964, },
+	{ PCI_VDEVICE(MARVELL, 0x2a55),     .driver_data = MWL8864, },
+	{ PCI_VDEVICE(MARVELL, 0x2b38),     .driver_data = MWL8897, },
+	{ PCI_VDEVICE(MARVELL, 0x2b40),     .driver_data = MWL8964, },
+	{ PCI_VDEVICE(MARVELL_EXT, 0x2b42), .driver_data = MWL8997, },
 	{ },
 };
 
@@ -47,20 +48,34 @@ static struct mwl_chip_info pcie_chip_tbl[] = {
 	[MWL8864] = {
 		.part_name	= "88W8864",
 		.fw_image	= "mwlwifi/88W8864.bin",
+		.cal_file	= NULL,
+		.txpwrlmt_file  = NULL,
 		.antenna_tx	= ANTENNA_TX_4_AUTO,
 		.antenna_rx	= ANTENNA_RX_4_AUTO,
 	},
 	[MWL8897] = {
 		.part_name	= "88W8897",
 		.fw_image	= "mwlwifi/88W8897.bin",
+		.cal_file	= NULL,
+		.txpwrlmt_file  = NULL,
 		.antenna_tx	= ANTENNA_TX_2,
 		.antenna_rx	= ANTENNA_RX_2,
 	},
 	[MWL8964] = {
 		.part_name	= "88W8964",
 		.fw_image	= "mwlwifi/88W8964.bin",
+		.cal_file	= NULL,
+		.txpwrlmt_file  = NULL,
 		.antenna_tx	= ANTENNA_TX_4_AUTO,
 		.antenna_rx	= ANTENNA_RX_4_AUTO,
+	},
+	[MWL8997] = {
+		.part_name	= "88W8997",
+		.fw_image	= "mwlwifi/88W8997.bin",
+		.cal_file	= "mwlwifi/WlanCalData_ext.conf",
+		.txpwrlmt_file  = "mwlwifi/txpwrlmt_cfg.conf",
+		.antenna_tx	= ANTENNA_TX_2,
+		.antenna_rx	= ANTENNA_RX_2,
 	},
 };
 
@@ -163,7 +178,8 @@ static int pcie_wait_complete(struct mwl_priv *priv, unsigned short cmd)
 		return -EIO;
 	}
 
-	usleep_range(3000, 5000);
+	if (priv->chip_type != MWL8997)
+		usleep_range(3000, 5000);
 
 	return 0;
 }
@@ -233,11 +249,14 @@ static int pcie_init(struct ieee80211_hw *hw)
 		le32_to_cpu(get_hw_spec->rxpd_wr_ptr) & 0x0000ffff;
 	priv->hw_data.fw_release_num = le32_to_cpu(get_hw_spec->fw_release_num);
 	priv->hw_data.hw_version = get_hw_spec->version;
-	writel(pcie_priv->desc_data[0].pphys_tx_ring,
-	       pcie_priv->iobase0 + pcie_priv->desc_data[0].wcb_base);
-	for (i = 1; i < SYSADPT_TOTAL_TX_QUEUES; i++)
-		writel(pcie_priv->desc_data[i].pphys_tx_ring,
-		       pcie_priv->iobase0 + pcie_priv->desc_data[i].wcb_base);
+	if (priv->chip_type != MWL8997) {
+		writel(pcie_priv->desc_data[0].pphys_tx_ring,
+		       pcie_priv->iobase0 + pcie_priv->desc_data[0].wcb_base);
+		for (i = 1; i < SYSADPT_TOTAL_TX_QUEUES; i++)
+			writel(pcie_priv->desc_data[i].pphys_tx_ring,
+			       pcie_priv->iobase0 +
+			       pcie_priv->desc_data[i].wcb_base);
+	}
 	writel(pcie_priv->desc_data[0].pphys_rx_ring,
 	       pcie_priv->iobase0 + pcie_priv->desc_data[0].rx_desc_read);
 	writel(pcie_priv->desc_data[0].pphys_rx_ring,
@@ -245,13 +264,23 @@ static int pcie_init(struct ieee80211_hw *hw)
 
 	/* prepare and set HW specifications */
 	memset(&set_hw_spec, 0, sizeof(set_hw_spec));
-	set_hw_spec.wcb_base[0] =
-		cpu_to_le32(pcie_priv->desc_data[0].pphys_tx_ring);
-	for (i = 1; i < SYSADPT_TOTAL_TX_QUEUES; i++)
-		set_hw_spec.wcb_base[i] =
-			cpu_to_le32(pcie_priv->desc_data[i].pphys_tx_ring);
-	set_hw_spec.tx_wcb_num_per_queue = cpu_to_le32(PCIE_MAX_NUM_TX_DESC);
-	set_hw_spec.num_tx_queues = cpu_to_le32(PCIE_NUM_OF_DESC_DATA);
+	if (priv->chip_type == MWL8997) {
+		set_hw_spec.wcb_base[0] =
+			cpu_to_le32(pcie_priv->txbd_ring_pbase);
+		set_hw_spec.tx_wcb_num_per_queue =
+			cpu_to_le32(PCIE_MAX_TXRX_BD);
+		set_hw_spec.num_tx_queues = cpu_to_le32(1);
+		set_hw_spec.features |= HW_SET_PARMS_FEATURES_HOST_PROBE_RESP;
+	} else {
+		set_hw_spec.wcb_base[0] =
+			cpu_to_le32(pcie_priv->desc_data[0].pphys_tx_ring);
+		for (i = 1; i < SYSADPT_TOTAL_TX_QUEUES; i++)
+			set_hw_spec.wcb_base[i] = cpu_to_le32(
+				pcie_priv->desc_data[i].pphys_tx_ring);
+		set_hw_spec.tx_wcb_num_per_queue =
+			cpu_to_le32(PCIE_MAX_NUM_TX_DESC);
+		set_hw_spec.num_tx_queues = cpu_to_le32(PCIE_NUM_OF_DESC_DATA);
+	}
 	set_hw_spec.total_rx_wcb = cpu_to_le32(PCIE_MAX_NUM_RX_DESC);
 	set_hw_spec.rxpd_wr_ptr =
 		cpu_to_le32(pcie_priv->desc_data[0].pphys_rx_ring);
@@ -594,7 +623,7 @@ static int pcie_reg_access(struct ieee80211_hw *hw, bool write)
 	return ret;
 }
 
-static const struct mwl_hif_ops pcie_hif_ops = {
+static struct mwl_hif_ops pcie_hif_ops = {
 	.driver_name           = PCIE_DRV_NAME,
 	.driver_version        = PCIE_DRV_VERSION,
 	.tx_head_room          = PCIE_MIN_BYTES_HEADROOM,
@@ -781,10 +810,12 @@ static int pcie_get_rx_status_ndp(struct ieee80211_hw *hw, char *buf,
 			 readl(pcie_priv->iobase1 + MACREG_REG_RXDESCHEAD));
 	len += scnprintf(p + len, size - len, "rx_skb_trace: %d\n",
 			 skb_queue_len(&pcie_priv->rx_skb_trace));
-	len += scnprintf(p + len, size - len, "signature_err: %d\n",
-			 pcie_priv->signature_err);
 	len += scnprintf(p + len, size - len, "rx_skb_unlink_err: %d\n",
 			 pcie_priv->rx_skb_unlink_err);
+	len += scnprintf(p + len, size - len, "signature_err: %d\n",
+			 pcie_priv->signature_err);
+	len += scnprintf(p + len, size - len, "recheck_rxringdone: %d\n",
+			 pcie_priv->recheck_rxringdone);
 	len += scnprintf(p + len, size - len, "fast_data_cnt: %d\n",
 			 pcie_priv->rx_cnts.fast_data_cnt);
 	len += scnprintf(p + len, size - len, "fast_bad_amsdu_cnt: %d\n",
@@ -1225,6 +1256,39 @@ static void pcie_ba_account(struct mwl_priv *priv,
 	}
 }
 
+static void pcie_bf_mimo_ctrl_decode(struct mwl_priv *priv,
+				     struct acnt_bf_mimo_ctrl_s *bf_mimo_ctrl)
+{
+	struct file *fp_data = NULL;
+	const char filename[] = "/tmp/BF_MIMO_Ctrl_Field_Output.txt";
+	char str_buf[256];
+	char *buf = &str_buf[0];
+	mm_segment_t oldfs;
+
+	oldfs = get_fs();
+	set_fs(KERNEL_DS);
+
+	buf += sprintf(buf, "\nMAC: %pM\n", bf_mimo_ctrl->rec_mac);
+	buf += sprintf(buf, "SU_0_MU_1: %d\n", bf_mimo_ctrl->type);
+	buf += sprintf(buf, "MIMO_Ctrl_Field: 0x%x\n",
+		       le32_to_cpu(bf_mimo_ctrl->mimo_ctrl));
+	buf += sprintf(buf, "Comp_BF_Report_First_8Bytes: 0x%llx\n",
+		       le64_to_cpu(bf_mimo_ctrl->comp_bf_rep));
+
+	fp_data = filp_open(filename, O_RDWR | O_CREAT | O_TRUNC, 0);
+
+	if (!IS_ERR(fp_data)) {
+		__kernel_write(fp_data, str_buf, strlen(str_buf),
+			       &fp_data->f_pos);
+		filp_close(fp_data, current->files);
+	} else {
+		wiphy_err(priv->hw->wiphy, "Error opening %s! %x\n",
+			  filename, (unsigned int)fp_data);
+	}
+
+	set_fs(oldfs);
+}
+
 static void pcie_process_account(struct ieee80211_hw *hw)
 {
 	struct mwl_priv *priv = hw->priv;
@@ -1239,6 +1303,7 @@ static void pcie_process_account(struct ieee80211_hw *hw)
 	struct acnt_rx_s *acnt_rx;
 	struct acnt_ra_s *acnt_ra;
 	struct acnt_ba_s *acnt_ba;
+	struct acnt_bf_mimo_ctrl_s *acnt_bf_mimo_ctrl;
 	struct pcie_dma_data *dma_data;
 	struct mwl_sta *sta_info;
 	u16 nf_a, nf_b, nf_c, nf_d;
@@ -1282,6 +1347,15 @@ static void pcie_process_account(struct ieee80211_hw *hw)
 		acnt = (struct acnt_s *)pstart;
 
 		switch (le16_to_cpu(acnt->code)) {
+		case ACNT_CODE_BUSY:
+			pcie_priv->acnt_busy++;
+			break;
+		case ACNT_CODE_WRAP:
+			pcie_priv->acnt_wrap++;
+			break;
+		case ACNT_CODE_DROP:
+			pcie_priv->acnt_drop++;
+			break;
 		case ACNT_CODE_TX_ENQUEUE:
 			acnt_tx = (struct acnt_tx_s *)pstart;
 			sta_info = utils_find_sta(priv, acnt_tx->hdr.wh.addr1);
@@ -1358,6 +1432,11 @@ static void pcie_process_account(struct ieee80211_hw *hw)
 					spin_unlock_bh(&priv->sta_lock);
 				}
 			}
+			break;
+		case ACNT_CODE_BF_MIMO_CTRL:
+			acnt_bf_mimo_ctrl =
+				(struct acnt_bf_mimo_ctrl_s *)pstart;
+			pcie_bf_mimo_ctrl_decode(priv, acnt_bf_mimo_ctrl);
 			break;
 		default:
 			break;
@@ -1463,12 +1542,25 @@ static int pcie_probe(struct pci_dev *pdev, const struct pci_device_id *id)
 	pcie_priv = priv->hif.priv;
 	pcie_priv->mwl_priv = priv;
 	pcie_priv->pdev = pdev;
+	if (id->driver_data != MWL8964) {
+		pcie_priv->tx_head_room = PCIE_MIN_BYTES_HEADROOM;
+		if (id->driver_data == MWL8997) {
+			if (NET_SKB_PAD < PCIE_MIN_TX_HEADROOM_KF2) {
+				pcie_priv->tx_head_room =
+					PCIE_MIN_TX_HEADROOM_KF2;
+				pcie_hif_ops.tx_head_room =
+					PCIE_MIN_TX_HEADROOM_KF2;
+			}
+		}
+	}
 
 	rc = pcie_alloc_resource(pcie_priv);
 	if (rc)
 		goto err_alloc_pci_resource;
 
-	rc = mwl_init_hw(hw, pcie_chip_tbl[priv->chip_type].fw_image);
+	rc = mwl_init_hw(hw, pcie_chip_tbl[priv->chip_type].fw_image,
+			 pcie_chip_tbl[priv->chip_type].cal_file,
+			 pcie_chip_tbl[priv->chip_type].txpwrlmt_file);
 	if (rc)
 		goto err_wl_init;
 
