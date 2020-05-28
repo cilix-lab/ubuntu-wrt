@@ -1,4 +1,0 @@
-deb http://ports.ubuntu.com/ubuntu-ports eoan main
-deb http://ports.ubuntu.com/ubuntu-ports eoan universe
-deb http://ports.ubuntu.com/ubuntu-ports eoan multiverse
-deb http://ports.ubuntu.com/ubuntu-ports eoan restricted

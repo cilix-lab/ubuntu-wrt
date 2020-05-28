@@ -5,5 +5,5 @@ cat <<'EOF'
       |  |  | . | | |   |  _| | | | | |    -| | |
       |_____|___|___|_|_|_| |___|_____|__|__| |_|
 
-UbuntuWRT 20.02 - https://github.com/cilix-lab/ubuntu-wrt
+UbuntuWRT 20.04 - https://github.com/cilix-lab/ubuntu-wrt
 EOF

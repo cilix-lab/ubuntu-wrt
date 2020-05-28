@@ -1,4 +1,4 @@
-# UbuntuWRT 20.02
+# UbuntuWRT 20.04
 
 It's finally here! UbuntuWRT based on the latest to date Ubuntu LTS 20.04.
 
@@ -11,6 +11,12 @@ Lot's of changes since the last release:
 - Kernel loads from USB thumb, meaning you can leave factory firmware flashed. You must have a serial connection, though.
 
 **This is still in** ***testing,*** **so use at your own risk.**
+
+## Features
+
+- DNSmasq DHCP and DNS.
+- DNScrypt-proxy 2 to manage your upstream DNS request securely.
+- Ready for netplan (*testing*).
 
 ## Cloning
 
