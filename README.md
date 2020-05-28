@@ -12,6 +12,8 @@ Lot's of changes since the last release:
 
 **This is still in** ***testing,*** **so use at your own risk.**
 
+Release will be shared one testing is done, but you can build yourself for now.
+
 ## Features
 
 - DNSmasq DHCP and DNS.
