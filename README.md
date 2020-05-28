@@ -48,8 +48,8 @@ saveenv
 
 ## Building the Kernel
 
-Read (linux-4.19.124/README.md)[https://github.com/cilix-lab/ubuntu-wrt/blob/master/linux-4.19.124/README.md].
+Read [linux-4.19.124/README.md](https://github.com/cilix-lab/ubuntu-wrt/blob/master/linux-4.19.124/README.md).
 
 ## Building Root
 
-Read (BUILDING.md)[https://github.com/cilix-lab/ubuntu-wrt/blob/master/BUILDING.md].
+Read [BUILDING.md](https://github.com/cilix-lab/ubuntu-wrt/blob/master/BUILDING.md).
