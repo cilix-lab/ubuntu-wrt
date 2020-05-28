@@ -1,0 +1,6 @@
+# m h	dom mon dow	user	command
+@daily	root	apt-get clean
+@daily	root  find /var/log/*.log -type f -size +10240k -exec echo -n > {} \;
+@daily	root  find /var/log/*.log.* -type f -exec rm -f {} \;
+@daily	root  find /var/log/*.gz -type f -exec rm -f {} \;
+@daily	root  find /var/log/journal/* -size +10240k -exec rm -f {} \;

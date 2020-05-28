@@ -1,0 +1,6 @@
+# This is wrttmpfs environment file
+# You can change default configuration for tmpfs.
+
+TMPFS_DIRS="/var/log /var/tmp"
+WRT_INTERFACES="lan1 lan2 lan3 lan4 wlp1s0 wlp2s0 wan"
+WRT_SERVICES="hostapd dnsmasq dnscrypt-proxy"

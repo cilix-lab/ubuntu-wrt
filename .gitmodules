@@ -1,0 +1,6 @@
+[submodule "linux-4.19.124/drivers/net/wireless/marvell/mwlwifi"]
+	path = linux-4.19.124/drivers/net/wireless/marvell/mwlwifi
+	url = https://github.com/kaloz/mwlwifi.git
+[submodule "patches"]
+	path = patches
+	url = https://github.com/ValCher1961/McDebian_WRT3200ACM.git

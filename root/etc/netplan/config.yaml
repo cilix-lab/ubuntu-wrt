@@ -1,0 +1,21 @@
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    eth1:
+      dhcp4: false
+    wlp1s0:
+      dhcp4: false
+    wlp2s0:
+      dhcp4: false
+    switchports:
+      match:
+        name: lan[1-4]
+    wan:
+      dhcp4: true
+      optional: false
+  bridges:
+    br0:
+      interfaces: [switchports,wlp1s0,wlp2s0]
+      addresses: [192.168.1.1/24]
+      optional: false

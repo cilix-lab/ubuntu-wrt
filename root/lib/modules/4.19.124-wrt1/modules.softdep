@@ -1,0 +1,3 @@
+# Soft dependencies extracted from modules themselves.
+softdep ppp_mppe pre: arc4
+softdep libcrc32c pre: crc32c

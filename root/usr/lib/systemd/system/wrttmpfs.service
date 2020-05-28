@@ -1,0 +1,12 @@
+[Unit]
+Description=UbuntuWRT tmpfs setup
+After=local-fs.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=-/etc/default/wrt
+ExecStart=/usr/sbin/wrttmpfs $TMPFS_DIRS
+
+[Install]
+WantedBy=sysinit.target

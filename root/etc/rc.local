@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# Make sure systemd folders exist
+for d in /etc/systemd/system/{multi-user.target.wants,sysinit.wants}; do
+  [ ! -d "$d" ] && /bin/mkdir -p "$d"
+done
+
+# Generate ssh keys and enable openssh
+/usr/sbin/dpkg-reconfigure -f noninteractive openssh-server
+/bin/ln -s /lib/systemd/system/ssh.service /etc/systemd/system/multi-user.target.wants/ssh.service
+/bin/ln -s /lib/systemd/system/ssh.service /etc/systemd/system/sshd.service
+
+# Enable WRT services
+/bin/ln -s /usr/lib/systemd/system/wrttmpfs.service /etc/systemd/system/sysinit.target.wants/wrttmpfs.service
+for i in wan lan{1,2,3,4} wlp{1,2}s0 mlan0; do
+  /bin/ln -s /usr/lib/systemd/system/wrtif@.service /etc/systemd/system/multi-user.target.wants/wrtif@"$i".service
+done
+
+# Enable dnsmasq
+/bin/ln -s /lib/systemd/system/dnsmasq.service /etc/systemd/system/multi-user.target.wants/dnsmasq.service
+
+# Enable dnscrypt-proxy
+/bin/ln -s /usr/lib/systemd/system/dnscrypt-proxy.service /etc/systemd/system/multi-user.target.wants/dnscrypt-proxy.service
+
+# Enable hostapd and fix service file
+/bin/ln -s /lib/systemd/system/hostapd.service /etc/systemd/system/multi-user.target.wants/hostapd.service
+/usr/bin/sed -i 's|^ExecStart=.*|ExecStart=/usr/sbin/hostapd -B -P /run/hostapd.pid -B $DAEMON_OPTS $DAEMON_CONF|' /usr/lib/systemd/system/hostapd.service
+
+# Fix permissions
+while read line; do
+  echo $line | egrep -q '^#' && continue
+  USER=`echo $line | cut -d ',' -f1`
+  GROUP=`echo $line | cut -d ',' -f2`
+  PERMS=`echo $line | cut -d ',' -f3`
+  FILE=`echo $line | cut -d ',' -f4`
+  chown $USER:$GROUP $FILE
+  chmod $PERMS $FILE
+done < /etc/wrt-perms.list
+rm /etc/wrt-perms.list
+
+write_rc() {
+/bin/cat <<'EOF' > /etc/rc.local
+#!/bin/sh -e
+#
+# rc.local
+#
+# This script is executed at the end of each multiuser runlevel.
+# Make sure that the script will "exit 0" on success or any other
+# value on error.
+#
+# In order to enable or disable this script just change the execution
+# bits.
+#
+# By default this script does nothing.
+
+exit 0
+EOF
+}
+
+write_rc && /sbin/reboot && exit 0

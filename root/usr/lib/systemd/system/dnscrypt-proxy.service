@@ -1,0 +1,16 @@
+[Unit]
+Description=Encrypted/authenticated DNS proxy
+ConditionFileIsExecutable=/usr/bin/dnscrypt-proxy
+Wants=dnsmasq.service
+Before=dnsmasq.service
+After=network-online.target
+
+[Service]
+StartLimitInterval=5
+StartLimitBurst=10
+ExecStart=/usr/bin/dnscrypt-proxy -config /etc/dnscrypt-proxy/dnscrypt-proxy.toml
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

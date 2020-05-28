@@ -1,0 +1,27 @@
+#!/bin/bash
+
+if [ -z "$@" ]; then
+  echo "Missing arguments."
+  exit 1
+fi
+
+if ! mount | egrep -q 'tmpfs\son\s/tmp'; then
+  echo "No tmpfs mounted on /tmp."
+  exit 1
+fi
+
+# Create tmpfs
+[ ! -d "/tmp/work" ] && mkdir "/tmp/work"
+for d in $@; do
+  echo "Setting up tmpfs for $d"
+  NAME=`basename "$d"`
+  [ ! -d "/tmp/$NAME" ] && mkdir "/tmp/$NAME"
+  [ ! -d "/tmp/work/$NAME" ] && mkdir "/tmp/work/$NAME"
+  mount -t overlay -o lowerdir="$d",upperdir="/tmp/$NAME",workdir="/tmp/work/$NAME" none "/$d"
+done
+
+# Set permissions
+echo "$@" | grep -q "/var/tmp" && chmod 777 "/var/tmp"
+echo "$@" | grep -q "/var/log" && chmod 775 "/var/log"
+
+exit 0

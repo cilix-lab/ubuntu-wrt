@@ -1,89 +1,49 @@
-# Ubuntu WRT
-Ubuntu distribution based on 18.04 Bionic Beaver for Linksys WRT3200ACM router.  
+# UbuntuWRT 20.02
 
-ROOTFS: [ubuntu-wrt_18.04_4.14.32-wrt1.tar.xz](http://www.mediafire.com/file/1nsdv1kkd9d2oks/ubuntu-wrt_18.04_4.14.32-wrt1.tar.xz)  
-ROOTFS (mirror): [ubuntu-wrt_18.04_4.14.32-wrt1.tar.xz (mirror)](https://wrt.hinrichs.io/downloads/18.04/ubuntu-wrt_18.04_4.14.32-wrt1.tar.xz)  
-Firmware: [wrt3200acm_4.14.32-wrt1.bin](http://www.mediafire.com/file/oh2x0vrz476b2t4/wrt3200acm_4.14.32-wrt1.bin)  
-Firmware (mirror): [wrt3200acm_4.14.32-wrt1.bin (mirror)](https://wrt.hinrichs.io/downloads/18.04/wrt3200acm_4.14.32-wrt1.bin)  
+It's finally here! UbuntuWRT based on the latest to date Ubuntu LTS 20.04.
 
-## Features
-* Dnsmasq for DHCP and DNS services.
-* [SQM-scripts](https://github.com/tohojo/sqm-scripts) for traffic shapping. Check sample configuration in /etc/sqm. Kernel has been compiled with [CAKE](https://www.bufferbloat.net/projects/codel/wiki/Cake/) support.
-* PPoE setup helper scripts `/scripts/dsl_pppoe.sh`.
-* Script to setup Samba Active Directory Domain Controller `/scripts/samba-ad-dc.sh`.
-* hostapd 2.6 and wpa_supplicant 2.6 with KRACK vulnerability fix.
-* mwlwifi 10.3.4.0-20180330 at commit [fcaea79](https://github.com/kaloz/mwlwifi/commit/fcaea79ad33d6ae3c381d9e96bf77d6870ca8e79).
+UbuntuWRT is Ubuntu for the Linksys WRT3200ACM router.
 
-## Defaults
-The default wireless configuration is:  
+Lot's of changes since the last release:
 
-* 2.4GHz SSID: UbuntuWRT_2.4GHz
-* 5GHz SSID: UbuntuWRT_5GHz
+- Ubuntu 20.04 LTS based.
+- Linux kernel 4.19.124.
+- Kernel loads from USB thumb, meaning you can leave factory firmware flashed. You must have a serial connection, though.
 
-Both networks are open, so you should set the password right away.  
+**This is still in** ***testing,*** **so use at your own risk.**
 
-The default login:  
+## Cloning
 
-* Hostname: WRT
-* Domain: local
-* User: root
-* Password: admin
+```
+git clone --recursive https://github.com/cilix-lab/ubuntu-wrt.git
+```
 
-## Updates
-When updates are available, they will be pushed to the repository as the "linux-image" package which is already installed in the latest ROOTFS and contains all kernel modules and firmware image. The update will verify that you are updating "linux-image" in a WRT3200ACM router and proceed with flashing the firmware.  
-The repository contains updates and some packages compiled specifically for the WRT3200ACM router.  
+## U-Boot
 
-## Changelog
-### 18.04
-* Updated base system to Ubuntu 18.04 Bionic Beaver.
-* Removed ISC-DHCP-Server and BIND9 in favour of dnsmasq.
-* Added script to setup Samba Active Directory Domain Controller.
-* Updated mainline kernel to 4.14.32.
-* Updated mwlwifi to 10.3.4.0-20180330 at commit [fcaea79](https://github.com/kaloz/mwlwifi/commit/fcaea79ad33d6ae3c381d9e96bf77d6870ca8e79).
+To enable booting from the USB thumb, login to U-Boot over serial and do the following to boot from a USB thumb.
 
-### 18.01
-* Reverted back to 16.04 Xenial for LTS.
-* Implemented DSA switch.
-* Fixed interface configurations. Now booting takes only seconds.
-* Back to mainline kernel. Current version is 4.14.13.
-* Implemented ValCher1961's [region free patch](https://github.com/ValCher1961/McDebian_WRT3200ACM), so you can now set your region properly.
+```
+setenv nandboot 'setenv bootargs console=ttyS0,115200 root=/dev/sda1 rw rootdelay=5; usb reset; ext4load usb 0:1 $defaultLoadAddr /boot/uimage; bootm $defaultLoadAddr'
 
-### 17.10.1
-* Updated kernel to 4.10.17-40.44-0.
-* Updated mwlwifi to commit [466368f](https://github.com/kaloz/mwlwifi/commit/466368f9454250c2bc024795600d92564553d9bb).
-* Changed network configuration to properly set eth1 MAC from script.
-* Minor fixes to some configuration files.
+setenv altnandboot 'setenv bootargs console=ttyS0,115200 root=/dev/sda1 rw rootdelay=5; usb reset; ext4load usb 0:1 $defaultLoadAddr /boot/uimage; bootm $defaultLoadAddr'
 
-### 17.10
-* New UbuntuWRT repository. Already configured in latest ROOTFS.
-* Now curated packages for the WRT3200ACM are provided directly through the UbuntuWRT repository.
-* Upgraded base system to Ubuntu Zesty 17.04.
-* Minor bug fixes and configuration changes.
+saveenv
+```
 
-### 17.08.2
-* Updated mwlwifi firmware to version 9.3.8.
+Defaults (to rollback flashed firmware):
 
-### 17.08.1
-* Added adblock.sh script.
-* Fixed several configuration issues.
-* Minor bug fixes.
+```
+setenv nandboot 'setenv bootargs console=ttyS0,115200 root=/dev/mtdblock6 ro rootdelay=1 rootfstype=jffs2 earlyprintk $mtdparts; nand read $defaultLoadAddr $priKernAddr $priKernSize; bootm $defaultLoadAddr'
 
-### 17.08
-* OpenSSH generates ssh keys on first boot.
-* Changed naming scheme.
-* Removed Webmin.
-* Fixed several configuration files and removed obsolete files.
-* Added chroot to BIND9.
-* Added Dynamic DNS for name resolving.
+setenv altnandboot 'setenv bootargs console=ttyS0,115200 root=/dev/mtdblock8 ro rootdelay=1 rootfstype=jffs2 earlyprintk $mtdparts; nand read $defaultLoadAddr $altKernAddr $altKernSize; bootm $defaultLoadAddr'
 
-If you find any issues with this release, please open an issue.  
+saveenv
+```
 
-# Important Notice
-* This works on WRT3200ACM. No tests have been done on any other Linksys' WRT routers.  
-* You must compile hostapd-2.6 and wpa_supplicant-2.6 for rootfs if you're building your own. \* (git://w1.fi/srv/git/hostap.git)  
-* To be able to use sch_cake, iproute2 with cake support needs to be compiled. \* (git://kau.toke.dk/cake/iproute2)  
+## Building the Kernel
 
-\* Packages available through UbuntuWRT repository.  
+Read (linux-4.19.124/README.md)[https://github.com/cilix-lab/ubuntu-wrt/blob/master/linux-4.19.124/README.md].
 
-## To understand more about the development of this project, follow the original thread on McDebian:
-[Linksys WRT1900AC, WRT1900ACS, WRT1200AC and WRT3200ACM Router Debian Implementation](https://www.snbforums.com/threads/linksys-wrt1900ac-wrt1900acs-wrt1200ac-and-wrt3200acm-router-debian-implementation.28394/)
+## Building Root
+
+Read (BUILDING.md)[https://github.com/cilix-lab/ubuntu-wrt/blob/master/BUILDING.md].

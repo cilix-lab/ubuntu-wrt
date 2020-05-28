@@ -1,9 +1,0 @@
-#!/bin/sh
-
-if [ "$IFACE" = "eth1" ]; then
-	for i in lan1 lan2 lan3 lan4; do
-		ifconfig $i up
-	done
-fi
-
-exit 0

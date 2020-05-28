@@ -1,0 +1,15 @@
+[Unit]
+Description=UbuntuWRT interface setup for %i
+Wants=network-pre.target
+Before=network-pre.target
+BindsTo=sys-subsystem-net-devices-%i.device
+After=sys-subsystem-net-devices-%i.device
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+Environment=IFACE=%i
+ExecStart=/usr/sbin/wrtif
+
+[Install]
+WantedBy=multi-user.target

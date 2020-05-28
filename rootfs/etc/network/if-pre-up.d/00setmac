@@ -1,8 +1,0 @@
-#!/bin/sh
-
-if [ "$IFACE" = "wan" ]; then
-	WANMAC=`strings /dev/mtd3 | grep hw_mac_addr | cut -d= -f2`
-	ifconfig wan hw ether "$WANMAC"
-fi
-
-exit 0

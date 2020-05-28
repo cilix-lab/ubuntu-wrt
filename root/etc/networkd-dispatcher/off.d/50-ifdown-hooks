@@ -1,0 +1,8 @@
+#!/bin/sh
+
+for d in down post-down; do
+    hookdir=/etc/network/if-${d}.d
+    [ -e $hookdir ] && /bin/run-parts $hookdir
+done
+
+exit 0

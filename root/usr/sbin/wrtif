@@ -1,0 +1,97 @@
+#!/bin/bash
+
+set_mac() {
+	ip link set dev $1 address $2
+}
+
+hex_sum() {
+
+	MAC=$1
+
+	# Get position
+	MP=`echo $MAC | cut -d ':' -f5` # Mac Position
+
+	# Sum
+	FD=${MP:0:1} # First Digit
+	LD=${MP: -1} # Last Digit
+	case $LD in
+		[0-8] )
+			NP="$FD$(($LD+1))" # New Position
+			;;
+		9 )
+			NP="$FD""a" # New Position
+			;;
+		a )
+			NP="$FD""b" # New Position
+			;;
+		b )
+			NP="$FD""c" # New Position
+			;;
+		c )
+			NP="$FD""d" # New Position
+			;;
+		d )
+			NP="$FD""e" # New Position
+			;;
+		e )
+			NP="$FD""f" # New Position
+			;;
+		f )
+			if [ "$FD" == "f" ]; then
+				NP="a0" # New Position
+			else
+				case $FD in
+					[0-8] )
+						NP="$(($FD+1))0" # New Position
+						;;
+					9 )
+						NP="a0" # New Position
+						;;
+					a )
+						NP="b0" # New Position
+						;;
+					b )
+						NP="c0" # New Position
+						;;
+					c )
+						NP="d0" # New Position
+						;;
+					d )
+						NP="e0" # New Position
+						;;
+					e )
+						NP="f0" # New Position
+						;;
+					f )
+						NP="00" # New Position
+						;;
+				esac
+			fi
+			;;
+	esac
+
+	echo $MAC | sed 's/\(..:..:..:..:\)..\(:..\)/\1'"$NP"'\2/' # New Mac
+
+}
+
+HWMAC=`strings /dev/mtd3 | grep hw_mac_addr | cut -d= -f2`
+LANMAC=`hex_sum $HWMAC`
+WFMAC=`hex_sum $LANMAC | sed 's/.$/0/'`
+MLMAC=`hex_sum $WFMAC`
+
+case $IFACE in
+	wan )
+		set_mac $IFACE $HWMAC
+		;;
+	lan[1-4] )
+		set_mac $IFACE $LANMAC
+		;;
+	wlp[12]s0 )
+		set_mac $IFACE $WFMAC
+		;;
+	mlan0 )
+		set_mac $IFACE $MLMAC
+		;;
+esac
+
+exit 0
