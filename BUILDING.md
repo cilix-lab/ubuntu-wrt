@@ -57,7 +57,7 @@ Install necessary packages:
 
 ```
 apt-get update
-apt-get install binutils bridge-utils bsdmainutils curl dbus dnsmasq dnsutils hostapd iproute2 iptables iw mtd-utils openssh-server pciutils python3-dev python3-pip samba-common samba-common-bin u-boot-tools usbutils vim vlan wpasupplicant wireless-tools
+apt-get install binutils bridge-utils bsdmainutils curl dbus dnsmasq dnsutils hostapd iproute2 iptables iw mtd-utils openssh-server pciutils u-boot-tools usbutils vim vlan wpasupplicant wireless-tools
 ```
 
 To disable `netplan` in favor of `ifupdown`:
