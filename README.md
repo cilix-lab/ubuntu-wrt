@@ -20,15 +20,25 @@ Release will be shared one testing is done, but you can build yourself for now.
 - DNScrypt-proxy 2 to manage your upstream DNS request securely.
 - Ready for netplan (*testing*).
 
-## Cloning
+## Installing
+
+### 1. Cloning
 
 ```
 git clone --recursive https://github.com/cilix-lab/ubuntu-wrt.git
 ```
 
-## U-Boot
+## 2. Building the Kernel
 
-To enable booting from the USB thumb, login to U-Boot over serial and do the following to boot from a USB thumb.
+Read [linux-4.19.124/README.md](https://github.com/cilix-lab/ubuntu-wrt/blob/master/linux-4.19.124/README.md).
+
+## 3. Building the Root
+
+Read [BUILDING.md](https://github.com/cilix-lab/ubuntu-wrt/blob/master/BUILDING.md).
+
+## 4. U-Boot
+
+To enable booting from the USB thumb after you've prepared UbuntuWRT's root system, set the following in the router's serial console:
 
 ```
 setenv nandboot 'setenv bootargs console=ttyS0,115200 root=/dev/sda1 rw rootdelay=5; usb reset; ext4load usb 0:1 $defaultLoadAddr /boot/uimage; bootm $defaultLoadAddr'
@@ -47,11 +57,3 @@ setenv altnandboot 'setenv bootargs console=ttyS0,115200 root=/dev/mtdblock8 ro 
 
 saveenv
 ```
-
-## Building the Kernel
-
-Read [linux-4.19.124/README.md](https://github.com/cilix-lab/ubuntu-wrt/blob/master/linux-4.19.124/README.md).
-
-## Building Root
-
-Read [BUILDING.md](https://github.com/cilix-lab/ubuntu-wrt/blob/master/BUILDING.md).
