@@ -28,15 +28,15 @@ Release will be shared one testing is done, but you can build yourself for now.
 git clone --recursive https://github.com/cilix-lab/ubuntu-wrt.git
 ```
 
-## 2. Building the Kernel
+### 2. Building the Kernel
 
 Read [linux-4.19.124/README.md](https://github.com/cilix-lab/ubuntu-wrt/blob/master/linux-4.19.124/README.md).
 
-## 3. Building the Root
+### 3. Building the Root
 
 Read [BUILDING.md](https://github.com/cilix-lab/ubuntu-wrt/blob/master/BUILDING.md).
 
-## 4. U-Boot
+### 4. U-Boot
 
 To enable booting from the USB thumb after you've prepared UbuntuWRT's root system, set the following in the router's serial console:
 
